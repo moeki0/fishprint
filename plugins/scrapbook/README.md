@@ -1,14 +1,13 @@
 # Scrapbook
 
-A Claude Code plugin that browses your X timeline, screenshots interesting tweets, and writes a digest with context.
+A Claude Code plugin that browses curated media (Hacker News, Lobsters, etc.), captures interesting text fragments as screenshots (魚拓), and writes a digest with Japanese translations.
 
 ## What it does
 
-1. Browses your X Following timeline + Explore/Trending
-2. Picks the most interesting tweets
-3. Screenshots each tweet (auto-archive / 魚拓)
-4. Researches background via WebSearch
-5. Generates a Markdown digest: tweet screenshots + context
+1. Browses curated media sites (HN, Lobsters, Reddit, source articles)
+2. Picks the most interesting text fragments for a given theme
+3. Screenshots each fragment (魚拓 / web archive snapshot)
+4. Generates a Markdown digest: screenshot + Japanese translation for each fragment
 
 ## Install
 
@@ -16,8 +15,6 @@ A Claude Code plugin that browses your X timeline, screenshots interesting tweet
 /plugin marketplace add moeki0/claude-code-scrapbook
 /plugin install scrapbook@scrapbook
 ```
-
-Requires [Claude in Chrome](https://chromewebstore.google.com/detail/claude-in-chrome/aeiigcfknpfpdklbppjhgoappogemjim) extension for X timeline access.
 
 ### Setup
 
@@ -38,12 +35,14 @@ secret-tool store --label=scrapbook service scrapbook key gyazo
 ## Usage
 
 ```
-/scrapbook:go
+/scrapbook:go AI agents
+/scrapbook:go Rust async
+/scrapbook:go            # no theme — captures whatever is interesting on HN right now
 ```
 
-That's it. No theme, no config needed. It captures whatever is interesting on your timeline right now.
+Output: `scrapbook_YYYY_MM_DD.md` with fragment screenshots in `./scrapbook_images/`.
 
-Output: `scrapbook_YYYY_MM_DD.md` with tweet screenshots in `./scrapbook_images/`.
+Each captured text fragment is immediately followed by its Japanese translation.
 
 ## Configuration (optional)
 

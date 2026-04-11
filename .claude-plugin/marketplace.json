@@ -1,6 +1,6 @@
 {
   "name": "scrapbook",
-  "description": "Browse X timeline, screenshot tweets, and write context digests",
+  "description": "Browse curated media, capture text fragments as screenshots (魚拓) with translations",
   "owner": {
     "name": "moeki",
     "email": "hi@moeki.org"
@@ -9,8 +9,8 @@
     {
       "name": "scrapbook",
       "displayName": "Scrapbook",
-      "description": "Browse X timeline, screenshot tweets, and write context digests",
-      "version": "1.4.0",
+      "description": "Browse curated media, capture text fragments as screenshots (魚拓) with translations",
+      "version": "1.5.0",
       "source": "./plugins/scrapbook"
     }
   ]

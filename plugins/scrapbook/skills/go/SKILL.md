@@ -1,39 +1,44 @@
 ---
 name: go
-description: Browse X timeline, capture interesting tweets as screenshots, and write context. Use when asked for "news", "what's happening", "timeline", or "scrapbook".
+description: Browse curated media (Hacker News, etc.), capture interesting text fragments as screenshots (魚拓) with translations. Use when asked for "news", "what's happening", "scrapbook", or to research a topic.
 user-invocable: true
 allowed-tools:
-  - WebSearch
-  - WebFetch
   - Read
   - Write
   - Bash(mkdir *)
   - Bash(ls *)
   - mcp__scrapbook__*
-  - mcp__claude-in-chrome__*
 ---
 
-# Scrapbook — What's happening on X right now
+# Scrapbook — Web 魚拓 with Translation
 
 Arguments: `$ARGUMENTS`
 
 ## What Scrapbook does
 
-1. Browse the user's X timeline (Following + Trending)
-2. Pick the most interesting/noteworthy tweets
-3. Screenshot each tweet (auto-archive / 魚拓)
-4. Research background via WebSearch
-5. Write a Markdown digest: tweet screenshots + context
+1. Browse curated media sites for a given theme/topic
+2. Pick the most interesting/noteworthy text fragments (phrases, paragraphs, headlines)
+3. Screenshot each fragment (魚拓 / web archive snapshot)
+4. Write a Markdown digest: each screenshot immediately followed by its Japanese translation
 
-**No theme filtering. Capture whatever is interesting right now.**
+## Sources
 
-**Tweet collection is from X timeline only. Do NOT use X search — it's unreliable.**
-**WebSearch/WebFetch are used for background research only.**
+Browse these curated media sites (in order of priority):
+
+1. **Hacker News** — `https://news.ycombinator.com/`
+   - Front page for general tech topics
+   - Use `https://hn.algolia.com/?q=QUERY` for specific themes
+   - Follow interesting links to their source articles
+2. **Lobsters** — `https://lobste.rs/`
+3. **Reddit** — relevant subreddits for the theme (e.g. `https://old.reddit.com/r/programming/`)
+4. **Source articles** — follow links from aggregators to original blog posts, papers, news articles
+
+**Do NOT use X/Twitter. Do NOT use web search APIs.** Browse the sites directly via Playwright (kiri_open).
 
 ## Output
 
-- `output`: `scrapbook_{{date}}.md` (current directory)
-- `images`: `local` (`./scrapbook_images/`)
+- Default output: `scrapbook_{{date}}.md` (current directory)
+- Default images: `local` (`./scrapbook_images/`)
 
 If `./scrapbook.json` exists, read `output`, `images`, and `instructions` from it.
 
@@ -41,76 +46,77 @@ If `./scrapbook.json` exists, read `output`, `images`, and `instructions` from i
 
 ### Phase 0: Load config (optional)
 
-Check if `./scrapbook.json` exists. If it does, read it. Only `output`, `images`, and `instructions` are used. No theme.
+Check if `./scrapbook.json` exists. If it does, read `output`, `images`, and `instructions` from it.
 
-### Phase 1: Collect tweets from X
+### Phase 1: Browse curated media
 
-Requires claude-in-chrome MCP.
+Use `kiri_open` to browse the curated media sites listed above.
 
-**A. Following timeline:**
-1. `tabs_context_mcp` to check current tabs
-2. `navigate` to `https://x.com/home`, then click the "Following" tab via `javascript_tool`
-3. **Incremental scroll collection** — X virtualizes the DOM (only ~5-7 tweets exist at a time). You MUST:
-   a. Initialize a global collector: `window.__scrapbookTweets = {}`
-   b. Run a loop: collect visible tweets into `__scrapbookTweets`, then `scrollBy(0, 800)` — small scroll to avoid skipping
-   c. Each iteration is a **separate `javascript_tool` call** (NOT async/await in one call — it will timeout)
-   d. Repeat 15-20 times to collect 30+ tweets
-   e. After collection, read all results from `window.__scrapbookTweets`
+1. Start with Hacker News front page
+2. If `$ARGUMENTS` specifies a theme, also search HN Algolia for that theme
+3. Read the DOM structure returned by `kiri_open` to find interesting posts related to the theme
+4. Follow links to source articles that look promising
 
-**B. Explore / Trending:**
-1. `navigate` to `https://x.com/explore/tabs/trending`
-2. Same incremental scroll collection
-3. Also check `https://x.com/explore/tabs/news`
+Collect **at least 10-15 candidate links** before selecting.
 
-Merge results from A and B.
+### Phase 2: Select & Deep-read
 
-### Phase 2: Select
+Pick **5-8 of the most relevant/interesting articles** for the theme.
 
-Pick **5-10 of the most interesting tweets**. No theme filter — just pick what's noteworthy, surprising, important, or funny.
+For each selected article:
+1. `kiri_open(article_url)` — open and read the content
+2. Identify the most interesting/important text fragments:
+   - Key paragraphs that capture the main insight
+   - Notable quotes or statements
+   - Important technical details or findings
 
-### Phase 3: Capture tweets
+### Phase 3: Capture 魚拓
 
-For each selected tweet, open its permalink and screenshot the tweet element.
+For each interesting text fragment:
 
-1. Call `kiri_open(tweet_url)` — opens the tweet page
-2. Call `kiri_capture(["article[data-testid='tweet']"], localDir)` — screenshots the tweet
-3. Repeat for each tweet
+1. Identify the CSS selector for the element containing the text
+2. `kiri_capture([selector], localDir)` — screenshot the fragment
+3. Note the text content for translation
 
-### Phase 4: Research & write context
+**Aim for 1-3 captures per article, 10-20 total.**
 
-For each captured tweet, research the background:
+### Phase 4: Generate Markdown
 
-- **WebSearch** for related context (what is this about? why does it matter?)
-- **WebFetch** to read linked articles if the tweet references one
-- If the tweet is in a foreign language, translate the key points in text
-
-### Phase 5: Generate Markdown
-
-Write the Markdown yourself. For each tweet:
+Write the Markdown yourself. Structure:
 
 ```markdown
-## Brief topic description
+# Scrapbook: {theme} — {date}
 
-![](tweet_screenshot.png)
+## Article title or topic
 
-Background context in 2-3 sentences.
+![](fragment_screenshot.png)
 
-→ [Tweet](https://x.com/user/status/123)
+> 日本語訳: ここにスクリーンショットのテキストの日本語訳を書く。段落全体を翻訳する。
+
+![](another_fragment.png)
+
+> 日本語訳: 別の断片の翻訳。
+
+→ [Source](https://example.com/article)
 
 ---
 ```
 
 **Rules for output:**
-- `##` heading: brief topic label
-- Tweet screenshot
-- 2-3 sentences of context
-- Link to original tweet
-- `---` between topics
+- `##` heading: article title or topic label
+- Screenshot of the text fragment (魚拓)
+- **Immediately after each screenshot**: blockquote with `日本語訳:` followed by the full Japanese translation of the captured text
+- Every captured fragment MUST have its translation directly below it — no exceptions
+- Link to original source article
+- `---` between articles
 
 ## Rules
 
-- **Never use X search** — only Following timeline + Explore/Trending
-- WebSearch/WebFetch are for background research only, not for finding tweets
+- **Every screenshot must be immediately followed by its Japanese translation** — this is the core feature
+- Translations are full paragraph translations, not summaries
+- If the original text is already in Japanese, still include it as a blockquote (no `日本語訳:` prefix needed, just quote the text)
+- Browse curated media sites directly — do NOT use web search APIs or X/Twitter
+- Use Playwright via `kiri_open` / `kiri_capture` for all browsing and screenshots
 - No duplicates
-- Translate foreign tweets in the context text, not in screenshots
-- On error, skip and move on
+- On error (page won't load, element not found), skip and move on
+- If `$ARGUMENTS` is empty, capture whatever is interesting on Hacker News front page right now

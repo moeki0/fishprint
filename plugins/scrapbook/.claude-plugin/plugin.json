@@ -1,6 +1,6 @@
 {
   "name": "scrapbook",
-  "description": "Browse X timeline, screenshot tweets, and write context digests",
-  "version": "1.4.0",
-  "keywords": ["x", "twitter", "tweets", "screenshot", "archive", "digest"]
+  "description": "Browse curated media, capture text fragments as screenshots (魚拓) with translations",
+  "version": "1.5.0",
+  "keywords": ["news", "hackernews", "screenshot", "archive", "digest", "translation", "魚拓"]
 }
