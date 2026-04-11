@@ -1,51 +1,51 @@
 ---
 name: ocr
-description: 画像内のテキストをOCRで読み取り、翻訳オーバーレイを作成する。「OCR」「画像を翻訳」と言った時に使う。
+description: OCR text from images and create translation overlays. Use when asked to "OCR", "translate an image", or "read text from image".
 user-invocable: true
 allowed-tools:
   - Read
   - Write
-  - Bash(*/kiri-run.sh *)
+  - Bash(kiri-ocr *)
   - Bash(mkdir *)
   - Bash(ls *)
   - Bash(head *)
   - Write(/tmp/*)
 ---
 
-# /kiri:ocr — OCR翻訳オーバーレイ
+# /kiri:ocr — OCR translation overlay
 
-引数: `$ARGUMENTS`
+Arguments: `$ARGUMENTS`
 
-画像内のテキストをtesseractでOCRし、翻訳テキストを灰色の背景でオーバーレイする。
+Extract text from images via tesseract OCR and overlay translations on a light gray background.
 
-## フロー
+## Flow
 
-### Step 1: OCR読み取り
+### Step 1: OCR
 
 ```bash
-${CLAUDE_SKILL_DIR}/kiri-run.sh ocr "<image_path_or_url>"
+kiri-ocr "<image_path_or_url>"
 ```
 
-→ 行ごとのテキストとバウンディングボックスがJSON出力される。
+→ Returns JSON with text lines and bounding boxes.
 
-### Step 2: 翻訳JSONを作成
+### Step 2: Create translation JSON
 
-OCR結果を元に翻訳を作成：
+Based on OCR results:
 
 ```json
 [
-  { "text": "Original text", "translated": "翻訳テキスト", "bbox": { "x0": 10, "y0": 20, "x1": 200, "y1": 50 } }
+  { "text": "Original text", "translated": "Translated text", "bbox": { "x0": 10, "y0": 20, "x1": 200, "y1": 50 } }
 ]
 ```
 
-### Step 3: オーバーレイ適用
+### Step 3: Apply overlay
 
 ```bash
-${CLAUDE_SKILL_DIR}/kiri-run.sh ocr "<image_path_or_url>" /tmp/translations.json
-${CLAUDE_SKILL_DIR}/kiri-run.sh ocr "<image_path_or_url>" /tmp/translations.json --local <dir>
+kiri-ocr "<image_path_or_url>" /tmp/translations.json
+kiri-ocr "<image_path_or_url>" /tmp/translations.json --local <dir>
 ```
 
-→ 元テキストを薄い灰色で塗りつぶし、翻訳テキストをオーバーレイした画像を保存。
+→ Fills original text regions with light gray and draws translated text on top.
 
-引数に画像パス/URLがあればそれを使う。なければユーザーに聞く。
-tesseractが必要（`brew install tesseract`）。
+Take image path/URL from arguments. If none provided, ask the user.
+Requires tesseract (`brew install tesseract`).

@@ -1,25 +1,24 @@
 ---
 name: read
-description: WebページのテキストをPlaywrightで読み取る。「ページ読んで」「記事の内容を取得」と言った時に使う。
+description: Extract text content from a web page using Playwright. Use when asked to "read a page" or "get article content".
 user-invocable: true
 allowed-tools:
-  - Bash(*/kiri-run.sh *)
+  - Bash(kiri-read *)
   - Bash(mkdir *)
   - Bash(ls *)
   - Bash(head *)
-  - Write(/tmp/*)
 ---
 
-# /kiri:read — Webページのテキスト読み取り
+# /kiri:read — Read web page text
 
-引数: `$ARGUMENTS`
+Arguments: `$ARGUMENTS`
 
-Playwrightでページを開き、本文テキストを抽出して返す。
+Opens a page with Playwright and extracts the main text content.
 
-## 使い方
+## Usage
 
 ```bash
-${CLAUDE_SKILL_DIR}/kiri-run.sh read "<url>"
+kiri-read "<url>"
 ```
 
-URLは引数から取得する。引数がなければユーザーに聞く。
+Take the URL from arguments. If none provided, ask the user.

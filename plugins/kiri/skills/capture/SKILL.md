@@ -1,10 +1,11 @@
 ---
 name: capture
-description: Webページの要素を翻訳してスクショを撮る。「スクショ撮って」「キャプチャして」「ページを翻訳して撮って」と言った時に使う。
+description: Take translated screenshots of web page elements. Use when asked to "screenshot", "capture", or "clip a page".
 user-invocable: true
 allowed-tools:
   - Read
   - Write
+  - Bash(kiri-read *)
   - Bash(kiri-capture *)
   - Bash(mkdir *)
   - Bash(ls *)
@@ -12,25 +13,25 @@ allowed-tools:
   - Write(/tmp/*)
 ---
 
-# /kiri:capture — 翻訳スクショ
+# /kiri:capture — Translated screenshots
 
-引数: `$ARGUMENTS`
+Arguments: `$ARGUMENTS`
 
-Webページの指定要素に翻訳テキストを注入し、要素単位でスクショを撮影してGyazo/ローカルに保存する。
+Inject translations into page elements and capture element-level screenshots to Gyazo or local storage.
 
-## フロー
+## Flow
 
-1. `kiri-capture.sh read "<url>"` でページのテキストを読む
-2. 翻訳すべきセクションとセレクタを決定
-3. Writeツールで `/tmp/sections.json` を作成（catは使わない）
-4. キャプチャ実行
+1. Read page text with `kiri-read "<url>"`
+2. Decide which sections to clip and translate
+3. Write `/tmp/sections.json` using the Write tool (not cat)
+4. Capture
 
 ```bash
 kiri-capture "<url>" /tmp/sections.json
 kiri-capture "<url>" /tmp/sections.json --local <dir>
 ```
 
-- `translated` が空 → 翻訳注入しない
-- `capture: false` → 翻訳注入だけしてスクショしない
+- Empty `translated` → no translation injection
+- `capture: false` → inject translation only, don't screenshot
 
-引数にURLがあればそれを使う。なければユーザーに聞く。
+Take URL from arguments. If none provided, ask the user.
