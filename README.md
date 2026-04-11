@@ -4,16 +4,23 @@ Webコンテンツを切り取り、翻訳し、まとめるClaude Codeスキル
 
 記事やツイートのスクショに翻訳を注入したり、画像内のテキストをOCRで翻訳オーバーレイしたり、それらをまとめてMarkdownページを生成する。
 
-## セットアップ
+## インストール
+
+Claude Code内で `/plugin` を開き、`moeki/kiri` をインストール。
+
+または手動で：
 
 ```bash
-# スキルディレクトリにクローン
 git clone https://github.com/moeki/kiri.git ~/.claude/skills/kiri
+```
 
-# 依存インストール
-cd ~/.claude/skills/kiri
-bun install
-bunx playwright install chromium
+依存関係はスキル初回実行時に自動インストールされます。
+
+### オプション
+
+```bash
+# OCR機能を使う場合
+brew install tesseract  # macOS
 
 # OCR機能を使う場合（オプション）
 brew install tesseract  # macOS
