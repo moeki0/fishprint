@@ -1,6 +1,6 @@
 ---
 name: go
-description: Collect information from the web on a given theme and generate a scrapbook with translated screenshots. Use when asked to "research", "summarize", "collect", or "look into" something.
+description: Collect information from the web on a given theme. Screenshots for highlights, text for summaries. Use when asked to "research", "summarize", "collect", or "look into" something.
 user-invocable: true
 allowed-tools:
   - WebSearch
@@ -13,20 +13,20 @@ allowed-tools:
   - mcp__claude-in-chrome__*
 ---
 
-# Kiri — Clip, translate, and compile web content
+# Kiri — Clip highlights, summarize the rest
 
 Arguments: `$ARGUMENTS`
 
 ## Philosophy
 
-**Images are primary. Text is secondary.**
+**Screenshots for highlights. Text for everything else.**
 
-Kiri produces a scrapbook. It clips important parts of web pages as screenshots, injects translations, and arranges them so the reader gets the full feel of the original source.
+Kiri produces a digest. Important visuals (tweets, charts, hero images, key quotes) are captured as screenshots. Context and summaries are written as text. Translations are done in text, not injected into images.
 
-- Clip generously. More is better
-- Titles, body text, charts, figures, photos, tweets — clip everything as screenshots
-- Translations are injected into the screenshots, so readers understand just by looking at the images
-- Text commentary only when images alone can't convey necessary context — 1-2 lines max
+- Screenshots: tweets, embedded images, charts, infographics, key UI elements
+- Text: summaries, translations, context, commentary
+- Embedded images in articles should always be captured
+- Foreign content is translated as text alongside the screenshot
 
 ## Theme
 
@@ -50,14 +50,14 @@ For recurring themes, place a config file at project root.
   "output": "cat_news_{{date}}.md",
   "images": "local",
   "sources": ["web", "x"],
-  "instructions": "Write in Japanese. Always clip cute cat photos."
+  "instructions": "Write in Japanese. Always capture cute cat photos."
 }
 ```
 
 - `images`: `"gyazo"` or `"local"`. Gyazo requires a token in the OS keychain
 - `sources`: Array of sources. Default `["web"]`
   - `"web"` → WebSearch
-  - `"x"` → Browse X timeline via Chrome (requires claude-in-chrome MCP)
+  - `"x"` → Browse X Following timeline via Chrome (requires claude-in-chrome MCP)
 - `instructions` → Custom directives applied to all phases
 
 **If `./kiri.json` exists, always follow `instructions`.**
@@ -86,98 +86,88 @@ For recurring themes, place a config file at project root.
 Browse the user's **Following timeline only**. X search is unreliable — don't use it.
 
 1. `tabs_context_mcp` to check current tabs
-2. `tabs_create_mcp` to open `https://x.com/home` (Following tab)
-3. `javascript_tool` to extract tweet URLs and text
-4. Pick theme-related tweets and links
-5. Scroll down and extract more (repeat 3-5 times to get enough content)
+2. `navigate` to `https://x.com/home`, then click the "Following" tab via `javascript_tool`
+3. **Incremental scroll collection** — X virtualizes the DOM (only ~5-7 tweets exist at a time). You MUST:
+   a. Initialize a global collector: `window.__kiriTweets = {}`
+   b. Run a loop: collect visible tweets into `__kiriTweets`, then `scrollBy(0, 800)` — small scroll to avoid skipping
+   c. Each iteration is a **separate `javascript_tool` call** (NOT async/await in one call — it will timeout)
+   d. Repeat 15-20 times to collect 30+ tweets
+   e. After collection, read all results from `window.__kiriTweets`
+4. Pick theme-related tweets and links from the collected set
 
 ### Phase 2: Select
 
-Pick the **3–5 most important** URLs. Judge by theme relevance.
+Pick the **3–5 most important** URLs/tweets. Judge by theme relevance.
 
-Aim for diversity — don't pick articles that all say the same thing from different angles.
+Aim for diversity — don't pick items that all say the same thing.
 
 ### Phase 3: Research (per topic)
 
-Research background for each topic. The goal is **not** to write long commentary — it's to decide **what to clip**.
+Research background for each topic to write informed summaries.
 
 - **WebSearch** for related context
 - **WebFetch** to read article text (no browser needed, fast)
 - For tweets, check the full thread, quoted tweets, and replies
 
-### Phase 4: Capture
+### Phase 4: Capture highlights
 
-**This is the most important phase. Clip a lot.**
+Use `kiri_open` and `kiri_capture` for visual highlights only. The browser stays alive between calls.
 
-Use the MCP tools `kiri_open` and `kiri_capture`. The browser stays alive between calls — no restart cost.
+**What to capture as screenshots:**
+- Tweets (the `article[data-testid="tweet"]` element)
+- Embedded images and photos in articles (`img`, `figure`)
+- Charts, graphs, infographics
+- Key UI elements or product screenshots
 
-**For each URL:**
+**What NOT to capture — write as text instead:**
+- Article titles → write as `## heading`
+- Body text → summarize/translate as text
+- Quotes → write as `> blockquote`
 
-**Step 1: Open the page**
+**For each page:**
 
-Call `kiri_open(url, translate?)`.
-
-- If the page is in a foreign language, set `translate` to the target language (e.g. `"ja"` for Japanese). **Google Translate auto-translates the entire page — no need to write translations manually.**
-- If the page is already in the target language, omit `translate`
-
-Returns:
-- Page text content (already translated if `translate` was set)
-- DOM structure hints (which elements exist: h1, p, img, figure, etc.)
-
-Use these hints to decide selectors. No guessing.
-
-**Step 2: Capture**
-
-Call `kiri_capture(selectors, localDir?)`. Just pass CSS selectors — the page is already translated.
-
-```json
-{
-  "selectors": [
-    "h1",
-    "h2:nth-of-type(1)",
-    "h2:nth-of-type(2)",
-    "article p:nth-of-type(1)",
-    "article p:nth-of-type(2)",
-    "article p:nth-of-type(3)",
-    "article p:nth-of-type(4)",
-    "article p:nth-of-type(5)",
-    "article p:nth-of-type(6)",
-    "figure:nth-of-type(1)",
-    "figure:nth-of-type(2)",
-    "article img:nth-of-type(1)",
-    "article img:nth-of-type(2)",
-    "article img:nth-of-type(3)",
-    "blockquote",
-    "table"
-  ],
-  "localDir": "/path/to/kiri_images"
-}
-```
-
-- **Clip as much as possible: 10-20 selectors per page. Don't hold back.**
-
-**If selectors miss, adjust and call `kiri_capture` again** — the page is still open.
-
-**Step 3: Move to the next URL**
-
-Call `kiri_open(next_url)`. The previous page closes automatically. Repeat Step 1-2.
-
-**Step 4: OCR translation overlay (when needed)**
-
-For images with foreign-language text, call `kiri_ocr(imagePath)` to get text + bounding boxes, then call again with translations to create the overlay.
+1. Call `kiri_open(url)` — returns DOM structure. Use it to find image/figure/tweet selectors
+2. Call `kiri_capture(selectors, localDir?)` — capture only visual elements
+3. If selectors miss, adjust and call `kiri_capture` again
 
 ### Phase 5: Generate Markdown
 
-**Do NOT write the Markdown yourself.** Call `kiri_done(output)` — it auto-generates the file from capture history.
+**Do NOT call kiri_done for this.** Write the Markdown yourself, mixing text and captured images.
 
-All captured images are assembled in order, grouped by source URL, separated by `---`, with source links. No manual writing needed.
+```markdown
+## Topic title (written as text)
 
-The `output` path comes from `kiri.json` or defaults to `kiri_{{date}}.md`. `{{date}}` is auto-replaced with `YYYY_MM_DD`.
+Summary of the topic in the user's language. 2-3 sentences of context.
+
+![](captured_tweet.png)
+
+> Key quote translated to user's language
+
+![](chart_from_article.png)
+
+Further explanation as needed.
+
+→ [Source](original URL)
+
+---
+
+## Next topic
+
+...
+```
+
+**Output rules:**
+- Headings and summaries as text
+- Screenshots for visual highlights (tweets, images, charts)
+- Translate foreign text content in text, not in screenshots
+- Actively capture all embedded images from articles
+- `---` between topics
+- Always include source link
 
 ## Rules
 
 - No duplicates: don't clip the same topic from multiple sources
 - Judge freshness by theme (breaking news → recent only; research → any time period)
-- Translate faithfully. Don't summarize
+- Translate faithfully. Don't summarize source quotes
 - On error, skip and move on
 - If Chrome is unavailable, fall back to WebSearch only
