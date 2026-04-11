@@ -43,7 +43,7 @@ Arguments: `$ARGUMENTS`
 
 **For global/international topics, use English-language sources only.** English sources have the highest volume, fastest updates, and best coverage for tech, science, AI, security, etc. Only use non-English sources when the topic is specifically regional (e.g. Japanese domestic policy, local events).
 
-**Do NOT use web search APIs.** Browse the sites directly via Playwright (open).
+**Finding sources:** Use DuckDuckGo via Playwright to discover good pages for any topic. Open `https://duckduckgo.com/?q=QUERY` with `open`, read the results, and follow links to quality sources. This works for any theme — not just tech. Also try Wikipedia as a starting point and follow its references for well-sourced material.
 
 ## Flow
 
