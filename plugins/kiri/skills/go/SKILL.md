@@ -7,12 +7,9 @@ allowed-tools:
   - WebFetch
   - Read
   - Write
-  - Bash(kiri-capture *)
-  - Bash(kiri-ocr *)
   - Bash(mkdir *)
   - Bash(ls *)
-  - Bash(head *)
-  - Write(/tmp/*)
+  - mcp__kiri__*
   - mcp__claude-in-chrome__*
 ---
 
@@ -103,70 +100,50 @@ Research background for each topic. The goal is **not** to write long commentary
 
 **This is the most important phase. Clip a lot.**
 
-Claude Code decides selectors and translations based on page content. Aim for 5–10 clippings per page.
+Use the MCP tools `kiri_open` and `kiri_capture`. The browser stays alive between calls — no restart cost.
 
-**For speed: read all pages first with WebFetch (parallel), then batch capture all at once.**
+**For each URL:**
 
-**Step 1: Read all pages**
+**Step 1: Open the page**
 
-Use **WebFetch** for each URL to get text content. Call multiple WebFetch in parallel — no browser needed, fast.
+Call `kiri_open(url)`. This returns:
+- Page text content
+- DOM structure hints (which elements exist: h1, p, img, figure, etc.)
 
-**Step 2: Write translation JSON (use the Write tool, not cat)**
+Use these hints to decide selectors. No guessing.
 
-Use the Write tool to create `/tmp/sections.json`. **Be generous with clippings.**
+**Step 2: Capture**
+
+Call `kiri_capture(sections, localDir?)` with the selectors and translations.
 
 ```json
-[
-  { "selector": "h1", "translated": "Translated title" },
-  { "selector": "article p:nth-of-type(1)", "translated": "Translated lead" },
-  { "selector": "article p:nth-of-type(2)", "translated": "Translated paragraph 2" },
-  { "selector": "article p:nth-of-type(3)", "translated": "Translated paragraph 3" },
-  { "selector": "article p:nth-of-type(4)", "translated": "Translated paragraph 4" },
-  { "selector": "figure:nth-of-type(1)", "translated": "" },
-  { "selector": "figure:nth-of-type(2)", "translated": "" },
-  { "selector": "article img:nth-of-type(1)", "translated": "" },
-  { "selector": "article img:nth-of-type(2)", "translated": "" },
-  { "selector": "blockquote", "translated": "Translated quote" },
-  { "selector": "table", "translated": "" }
-]
+{
+  "sections": [
+    { "selector": "h1", "translated": "Translated title" },
+    { "selector": "article p:nth-of-type(1)", "translated": "Translated lead" },
+    { "selector": "article p:nth-of-type(2)", "translated": "Translated paragraph 2" },
+    { "selector": "figure:nth-of-type(1)", "translated": "" },
+    { "selector": "article img:nth-of-type(1)", "translated": "" },
+    { "selector": "blockquote", "translated": "Translated quote" }
+  ],
+  "localDir": "/path/to/kiri_images"
+}
 ```
+
 - Empty `translated` → no translation injection (clip as-is, good for images/tables)
-- `capture: false` → inject translation but don't screenshot (e.g., translate tweet text, screenshot the tweet article)
+- `capture: false` → inject translation but don't screenshot
 - If the page is already in the target language, no translation needed — just clip
+- **Be generous: 5-10 clippings per page**
 
-**Step 3: Capture**
+**If selectors miss, adjust and call `kiri_capture` again** — the page is still open.
 
-**Prefer batch mode** — process all URLs with a single browser launch.
+**Step 3: Move to the next URL**
 
-Write all pages' sections to a single batch JSON with the Write tool:
-```json
-[
-  { "url": "https://...", "sections": [ { "selector": "h1", "translated": "..." }, ... ] },
-  { "url": "https://...", "sections": [ { "selector": "h1", "translated": "..." }, ... ] }
-]
-```
-
-```bash
-kiri-capture /tmp/batch.json --local <output_dir>
-```
-
-Single URL mode also works:
-```bash
-kiri-capture "<url>" /tmp/sections.json --local <output_dir>
-```
-
-→ All pages are captured in parallel with one browser. Returns image URLs or local paths.
+Call `kiri_open(next_url)`. The previous page closes automatically. Repeat Step 1-2.
 
 **Step 4: OCR translation overlay (when needed)**
 
-For charts or figures with text in a foreign language:
-```bash
-kiri-ocr <image_path>
-```
-→ Returns OCR results with bounding boxes. Create translation JSON and apply overlay:
-```bash
-kiri-ocr <image_path> /tmp/translations.json
-```
+For images with foreign-language text, call `kiri_ocr(imagePath)` to get text + bounding boxes, then call again with translations to create the overlay.
 
 ### Phase 5: Generate Markdown
 
@@ -197,7 +174,6 @@ Context note only if truly needed — one line
 
 ## Rules
 
-- **Never chain Bash commands with `&&` or `|`.** Call them one at a time so permission patterns match
 - No duplicates: don't clip the same topic from multiple sources
 - Judge freshness by theme (breaking news → recent only; research → any time period)
 - Translate faithfully. Don't summarize

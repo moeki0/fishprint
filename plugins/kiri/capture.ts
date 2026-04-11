@@ -14,7 +14,6 @@ if (!arg) {
   process.exit(1);
 }
 
-// バッチモード判定: 第2引数がURLならシングル、JSONファイルならバッチ
 let batch: BatchEntry[];
 
 if (arg.startsWith("http")) {
@@ -28,9 +27,13 @@ if (arg.startsWith("http")) {
   batch = JSON.parse(readFileSync(arg, "utf-8"));
 }
 
+const t0 = Date.now();
+const elapsed = () => `${((Date.now() - t0) / 1000).toFixed(1)}s`;
+
 async function capturePage(entry: BatchEntry): Promise<{ source_url: string; images: string[] }> {
+  const tPage = Date.now();
   const { page } = await openPage(entry.url);
-  console.error(`Opened: ${entry.url}`);
+  console.error(`[${elapsed()}] Opened: ${entry.url} (${Date.now() - tPage}ms)`);
 
   // バナー・オーバーレイを非表示
   await page.evaluate(() => {
@@ -57,6 +60,7 @@ async function capturePage(entry: BatchEntry): Promise<{ source_url: string; ima
   await page.waitForTimeout(300);
 
   // スクショ撮影
+  const tShot = Date.now();
   const screenshots: { buf: Buffer; title: string }[] = [];
   for (const sec of entry.sections.filter(s => s.capture !== false)) {
     try {
@@ -71,18 +75,28 @@ async function capturePage(entry: BatchEntry): Promise<{ source_url: string; ima
       console.error(`  Failed: ${sec.selector}: ${e}`);
     }
   }
+  console.error(`[${elapsed()}] Screenshots: ${screenshots.length} (${Date.now() - tShot}ms)`);
 
   await page.context().close();
 
   // アップロード/保存を並列
+  const tSave = Date.now();
   const images = await saveImagesParallel(screenshots, localDir);
+  console.error(`[${elapsed()}] Saved: ${images.length} (${Date.now() - tSave}ms)`);
+
   return { source_url: entry.url, images };
 }
 
-// 全URLを並列処理（同一ブラウザで複数タブ）
+console.error(`[${elapsed()}] Starting batch: ${batch.length} URLs`);
+
+const tBrowser = Date.now();
+await getBrowser();
+console.error(`[${elapsed()}] Browser launched (${Date.now() - tBrowser}ms)`);
+
 const results = await Promise.all(batch.map(entry => capturePage(entry)));
 
 await closeBrowser();
+console.error(`[${elapsed()}] Done`);
 
 console.log(JSON.stringify(
   batch.length === 1
