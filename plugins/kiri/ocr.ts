@@ -4,7 +4,7 @@ import { fileURLToPath } from "url";
 import { randomUUID } from "crypto";
 import { execSync } from "child_process";
 import sharp from "sharp";
-import { saveImage, parseLocalDir } from "./lib";
+import { saveImage, parseLocalDir, closeBrowser } from "./lib";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 

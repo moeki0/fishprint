@@ -1,10 +1,10 @@
 import { readFileSync } from "fs";
-import { launchPage, saveImage, parseLocalDir } from "./lib";
+import { openPage, closeBrowser, saveImagesParallel, parseLocalDir } from "./lib";
 
 const url = process.argv[2];
 const configPath = process.argv[3];
 if (!url || !configPath) {
-  console.error("Usage: kiri-capture.sh <url> <sections.json> [--local <dir>]");
+  console.error("Usage: kiri-capture <url> <sections.json> [--local <dir>]");
   process.exit(1);
 }
 
@@ -13,8 +13,8 @@ const sections: { selector: string; translated: string; capture?: boolean }[] = 
   readFileSync(configPath, "utf-8"),
 );
 
-const { browser, page } = await launchPage(url);
-console.error(`Opening: ${url}`);
+const { page } = await openPage(url);
+console.error(`Opened: ${url}`);
 
 // バナー・オーバーレイを非表示
 await page.evaluate(() => {
@@ -38,12 +38,13 @@ await page.evaluate((secs) => {
   }
 }, sections);
 
-await page.waitForTimeout(500);
+await page.waitForTimeout(300);
 
-// 各要素を element.screenshot() でキャプチャ
-const images: string[] = [];
-for (const sec of sections) {
-  if (sec.capture === false) continue;
+// 全要素のスクショを並列で撮影
+const captureTargets = sections.filter(s => s.capture !== false);
+const screenshots: { buf: Buffer; title: string }[] = [];
+
+for (const sec of captureTargets) {
   try {
     const el = await page.$(sec.selector);
     if (!el) {
@@ -51,12 +52,16 @@ for (const sec of sections) {
       continue;
     }
     const screenshot = await el.screenshot();
-    const imageUrl = await saveImage(Buffer.from(screenshot), url, localDir);
-    images.push(imageUrl);
+    screenshots.push({ buf: Buffer.from(screenshot), title: url });
   } catch (e) {
     console.error(`Failed to capture ${sec.selector}: ${e}`);
   }
 }
 
-await browser.close();
+await page.context().close();
+
+// アップロード/保存を並列実行
+const images = await saveImagesParallel(screenshots, localDir);
+
+await closeBrowser();
 console.log(JSON.stringify({ source_url: url, sections_captured: images.length, images }, null, 2));

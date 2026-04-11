@@ -1,12 +1,12 @@
-import { launchPage } from "./lib";
+import { openPage, closeBrowser } from "./lib";
 
 const url = process.argv[2];
 if (!url) {
-  console.error("Usage: kiri-read.sh <url>");
+  console.error("Usage: kiri-read <url>");
   process.exit(1);
 }
 
-const { browser, page } = await launchPage(url);
+const { page } = await openPage(url);
 console.error(`Reading: ${url}`);
 
 const text = await page.evaluate(() => {
@@ -19,5 +19,6 @@ const text = await page.evaluate(() => {
   return main.innerText;
 });
 
-await browser.close();
+await page.context().close();
+await closeBrowser();
 console.log(text);

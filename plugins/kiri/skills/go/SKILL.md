@@ -96,7 +96,7 @@ Aim for diversity — don't pick articles that all say the same thing from diffe
 Research background for each topic. The goal is **not** to write long commentary — it's to decide **what to clip**.
 
 - **WebSearch** for related context
-- **kiri-read** to read the full article text
+- **WebFetch** to read article text (faster than kiri-read — no browser needed). Use kiri-read only if WebFetch fails
 - For tweets, check the full thread, quoted tweets, and replies
 
 ### Phase 4: Capture (per URL)

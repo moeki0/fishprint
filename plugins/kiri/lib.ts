@@ -1,10 +1,12 @@
-import { chromium } from "playwright";
+import { chromium, type Browser, type Page } from "playwright";
 import { writeFileSync, mkdirSync, existsSync } from "fs";
 import { join } from "path";
 import { randomUUID } from "crypto";
 import { execSync } from "child_process";
 
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
+
+// --- Keychain ---
 
 export function getKeychainToken(service: string, account: string): string | null {
   try {
@@ -19,17 +21,36 @@ export function getKeychainToken(service: string, account: string): string | nul
   return null;
 }
 
-export async function launchPage(pageUrl: string, width = 1280) {
-  const browser = await chromium.launch({ headless: true });
+// --- Browser daemon ---
+
+const SOCKET_PATH = "/tmp/kiri-browser.sock";
+let _browser: Browser | null = null;
+
+export async function getBrowser(): Promise<Browser> {
+  if (_browser && _browser.isConnected()) return _browser;
+  _browser = await chromium.launch({ headless: true });
+  return _browser;
+}
+
+export async function openPage(pageUrl: string, width = 1280): Promise<{ browser: Browser; page: Page }> {
+  const browser = await getBrowser();
   const context = await browser.newContext({
     viewport: { width, height: 900 },
     userAgent: UA,
   });
   const page = await context.newPage();
-  await page.goto(pageUrl, { waitUntil: "domcontentloaded", timeout: 60000 });
-  await page.waitForTimeout(3000);
+  await page.goto(pageUrl, { waitUntil: "networkidle", timeout: 60000 });
   return { browser, page };
 }
+
+export async function closeBrowser() {
+  if (_browser) {
+    await _browser.close();
+    _browser = null;
+  }
+}
+
+// --- Image save ---
 
 export function parseLocalDir(): string | null {
   const idx = process.argv.indexOf("--local");
@@ -66,4 +87,10 @@ export async function saveImage(imageBuffer: Buffer, title?: string, localDir?: 
     console.error(`Uploaded: ${imageUrl}`);
     return imageUrl;
   }
+}
+
+// --- Parallel save ---
+
+export async function saveImagesParallel(buffers: { buf: Buffer; title: string }[], localDir?: string | null): Promise<string[]> {
+  return Promise.all(buffers.map(({ buf, title }) => saveImage(buf, title, localDir)));
 }
