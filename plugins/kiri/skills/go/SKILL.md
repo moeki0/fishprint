@@ -4,6 +4,7 @@ description: Collect information from the web on a given theme and generate a sc
 user-invocable: true
 allowed-tools:
   - WebSearch
+  - WebFetch
   - Read
   - Write
   - Bash(kiri-capture *)
