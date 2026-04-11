@@ -83,7 +83,7 @@ For each selected article:
 For each article, capture multiple sections from the **translated** page:
 
 1. Identify CSS selectors for each important section
-2. `capture([selector1, selector2, ...], localDir)` — screenshot multiple elements at once
+2. `capture([selector1, selector2, ...])` — screenshot multiple elements at once
 
 **Aim for 3-5 captures per article, 30-50+ total across all articles.**
 

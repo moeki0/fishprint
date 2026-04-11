@@ -24,10 +24,8 @@ function loadConfig(): Config {
 }
 const config = loadConfig();
 
-function resolveLocalDir(explicit?: string): string | undefined {
-  if (explicit) return explicit;
+function resolveLocalDir(): string | undefined {
   if (config.images === "gyazo") return undefined;
-  // default to local
   return "./scrapbook_images";
 }
 
@@ -106,7 +104,6 @@ mcp.setRequestHandler(ListToolsRequestSchema, async () => ({
             items: { type: "string" },
             description: "CSS selectors of elements to screenshot",
           },
-          localDir: { type: "string", description: "Local directory to save images. Omit to use scrapbook.json config (default: ./scrapbook_images)." },
         },
         required: ["sections"],
       },
@@ -133,7 +130,6 @@ mcp.setRequestHandler(ListToolsRequestSchema, async () => ({
               },
             },
           },
-          localDir: { type: "string" },
         },
         required: ["imagePath"],
       },
@@ -256,7 +252,7 @@ mcp.setRequestHandler(CallToolRequestSchema, async (req) => {
       }
 
       const selectors = args.selectors as string[];
-      const localDir = resolveLocalDir(args.localDir as string | undefined);
+      const localDir = resolveLocalDir();
 
       // スクショ + 保存を並列
       const results: string[] = [];
@@ -287,7 +283,7 @@ mcp.setRequestHandler(CallToolRequestSchema, async (req) => {
     case "ocr": {
       const imagePath = args.imagePath as string;
       const translations = args.translations as { text: string; translated: string; bbox: { x0: number; y0: number; x1: number; y1: number } }[] | undefined;
-      const localDir = resolveLocalDir(args.localDir as string | undefined);
+      const localDir = resolveLocalDir();
 
       let imageBuffer: Buffer;
       let tmpFile: string | null = null;
