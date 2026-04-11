@@ -8,6 +8,8 @@ allowed-tools:
   - Bash(mkdir *)
   - Bash(ls *)
   - mcp__scrapbook__*
+  - Skill(scrapbook:capture)
+  - Skill(scrapbook:write)
 ---
 
 # Scrapbook — Web 魚拓 with Translation
@@ -17,13 +19,13 @@ Arguments: `$ARGUMENTS`
 ## What Scrapbook does
 
 1. Browse curated media sites for a given theme/topic
-2. Open source articles **with Google Translate** (`open(url, translate=LANG)`) so the page itself is translated to the user's language
-3. Screenshot translated fragments in bulk (魚拓)
-4. Write a dense Markdown digest with translated screenshots
+2. Collect candidate article URLs
+3. Hand off to `/scrapbook:capture` to open, translate, and screenshot each article
+4. Hand off to `/scrapbook:write` to generate the Markdown digest
 
 **Goal: produce a single page packed with information. Quantity matters. Capture aggressively.**
 
-**Language: detect the language the user used in `$ARGUMENTS` (or the conversation). Use that language code for `translate` and for all text output (headings, transcriptions, etc.).**
+**Language: detect the language the user used in `$ARGUMENTS` (or the conversation). Use that language code for all subsequent steps.**
 
 ## Sources
 
@@ -43,13 +45,6 @@ Arguments: `$ARGUMENTS`
 
 **Do NOT use web search APIs.** Browse the sites directly via Playwright (open).
 
-## Output
-
-- Default output: `scrapbook_{{date}}.md` (current directory)
-- Default images: `local` (`./scrapbook_images/`)
-
-If `./scrapbook.json` exists, read `output`, `images`, and `instructions` from it.
-
 ## Flow
 
 ### Phase 0: Load config and init — MANDATORY, DO NOT SKIP
@@ -60,7 +55,7 @@ If `./scrapbook.json` exists, read `output`, `images`, and `instructions` from i
 2. Call `init` with the settings from scrapbook.json:
    - `init({ images: "gyazo" })` if scrapbook.json has `"images": "gyazo"`
    - `init({ images: "local" })` otherwise
-3. Remember `output` and `instructions` from scrapbook.json for Phase 4.
+3. Remember `output`, `instructions`, and `images` from scrapbook.json for later phases.
 
 If `./scrapbook.json` does not exist, call `init({ images: "local" })` with defaults.
 
@@ -75,88 +70,20 @@ Use `open` (without translate) to browse the index/listing pages.
 3. Read the DOM structure returned by `open` to find interesting posts related to the theme
 4. Follow links to source articles that look promising
 
-Collect **as many candidate links as possible** (20+) before selecting. More sources = better coverage.
+Collect **as many candidate article URLs as possible** (20+) before proceeding. More sources = better coverage.
 
-### Phase 2: Select & Deep-read with Translation
+### Phase 2: Capture
 
-Pick **10-15 of the most relevant/interesting articles** for the theme.
+For each candidate article, invoke `/scrapbook:capture` with the article URL and language code. The capture skill handles opening, translating, and screenshotting.
 
-For each selected article:
-1. `open(article_url, translate=LANG)` — open the article **translated to Japanese via Google Translate**
-2. Read the translated DOM structure to understand the content
-3. Identify individual text-centric elements to capture. **Each capture = 1 small, focused topic.** Target:
-   - Single paragraphs (`p`)
-   - Individual list items (`li`)
-   - Single blockquotes
-   - Individual headings + their immediate paragraph
-   - Single code blocks
-   - Individual comments (on HN, Lobsters, Reddit)
-   - Do NOT capture large containers, full sections, or entire articles in one shot
+### Phase 3: Write
 
-### Phase 3: Capture 魚拓
-
-**Each 魚拓 must be small and text-focused.** One paragraph, one quote, one comment = one capture. NOT a full page section.
-
-For each article, capture many small fragments from the **translated** page:
-
-1. Identify CSS selectors for individual text elements (prefer `p`, `li`, `blockquote`, `pre`, not `div` or `section`)
-2. `capture([selector1, selector2, ...])` — screenshot multiple elements at once
-
-**Aim for 5-10 captures per article, 50-100+ total across all articles. More is better.**
-
-### Phase 3.5: Follow outbound links (1-hop expansion)
-
-While reading articles, look for outbound links to primary sources:
-- Papers, preprints (arxiv, etc.)
-- GitHub repositories (README, key code)
-- Official documentation or announcements
-- Data sources, benchmarks
-
-For the most important ones:
-1. `open(linked_url, translate=LANG)` — open the primary source translated
-2. `capture(...)` — capture the key sections
-3. In the final Markdown, nest these under the parent article as `###` subsections
-
-### Phase 4: Generate Markdown
-
-Write the Markdown yourself. Structure:
-
-```markdown
-# Scrapbook: {theme} — {date}
-
-## Article title (in user's language)
-
-![](translated_screenshot_1.png)
-
-![](translated_screenshot_2.png)
-
-![](translated_screenshot_3.png)
-
-### Referenced: Paper or repo title
-
-![](linked_source_screenshot.png)
-
-→ [Primary source](https://arxiv.org/abs/...)
-
-→ [Source](https://example.com/article)
-
----
-```
-
-**Rules for output:**
-- `##` heading: article title in user's language
-- Screenshots of translated page fragments (魚拓) — the screenshots themselves are already translated
-- Link to original source article
-- `---` between articles
+Invoke `/scrapbook:write` with the output path, theme, date, language, images directory, and any instructions from scrapbook.json. The write skill assembles the final Markdown digest.
 
 ## Rules
 
-- **Translate pages before capturing** — use `open(url, translate=LANG)` for articles not in the user's language
-- **Each 魚拓 = small, text-focused, 1 topic** — capture individual paragraphs, quotes, comments. Never capture large containers or full sections
-- **Capture massively** — aim for 50-100+ screenshots total. More is always better. The user wants to consume large amounts of information in small bites
-- If the original text is already in the user's language, capture without translate
+- **For global/international topics, use English-language sources only**
 - Browse curated media sites directly — do NOT use web search APIs
-- Use Playwright via `open` / `capture` for all browsing and screenshots
 - No duplicates
-- On error (page won't load, element not found), skip and move on
+- On error, skip and move on
 - If `$ARGUMENTS` is empty, capture whatever is interesting on major tech curation sites right now

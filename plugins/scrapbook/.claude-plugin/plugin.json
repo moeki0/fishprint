@@ -1,6 +1,6 @@
 {
   "name": "scrapbook",
   "description": "Browse curated media, capture text fragments as screenshots (魚拓) with translations",
-  "version": "1.6.9",
+  "version": "1.7.0",
   "keywords": ["news", "hackernews", "screenshot", "archive", "digest", "translation", "魚拓"]
 }
