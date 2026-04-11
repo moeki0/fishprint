@@ -1,5 +1,5 @@
 ---
-name: kiri
+name: go
 description: Webから情報を収集し、翻訳スクショ・OCR翻訳付きのMarkdownページを生成する。「ニュース」「リサーチ」「まとめ」と言った時に使う。
 user-invocable: true
 allowed-tools:
