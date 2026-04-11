@@ -1,6 +1,6 @@
 {
   "name": "kiri",
   "description": "Web content clipper with translated screenshots and OCR for Claude Code",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "keywords": ["web", "screenshot", "translation", "ocr", "newsletter"]
 }
