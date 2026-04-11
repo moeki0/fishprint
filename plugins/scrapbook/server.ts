@@ -19,7 +19,7 @@ let browser: Browser | null = null;
 let currentPage: Page | null = null;
 let currentUrl: string = "";
 
-// キャプチャ履歴（kiri_done用）
+// キャプチャ履歴（done用）
 type CaptureGroup = { sourceUrl: string; images: string[] };
 let captureHistory: CaptureGroup[] = [];
 let currentGroup: CaptureGroup | null = null;
@@ -52,8 +52,8 @@ async function saveImage(imageBuffer: Buffer, title: string, localDir?: string):
     writeFileSync(filepath, imageBuffer);
     return filepath;
   } else {
-    const token = getKeychainToken("kiri", "gyazo");
-    if (!token) throw new Error("Gyazo token not found. Set with: security add-generic-password -a gyazo -s kiri -w TOKEN -U");
+    const token = getKeychainToken("scrapbook", "gyazo");
+    if (!token) throw new Error("Gyazo token not found. Set with: security add-generic-password -a gyazo -s scrapbook -w TOKEN -U");
     const formData = new FormData();
     formData.append("access_token", token);
     formData.append("imagedata", new Blob([imageBuffer], { type: "image/png" }), "capture.png");
@@ -66,12 +66,12 @@ async function saveImage(imageBuffer: Buffer, title: string, localDir?: string):
 }
 
 // --- MCP Server ---
-const mcp = new Server({ name: "kiri", version: "0.2.0" }, { capabilities: { tools: {} } });
+const mcp = new Server({ name: "scrapbook", version: "0.2.0" }, { capabilities: { tools: {} } });
 
 mcp.setRequestHandler(ListToolsRequestSchema, async () => ({
   tools: [
     {
-      name: "kiri_open",
+      name: "open",
       description: "Open a web page and return its text content with DOM structure hints. Browser stays alive for subsequent captures. Set translate to auto-translate the page via Google Translate before capture.",
       inputSchema: {
         type: "object",
@@ -83,8 +83,8 @@ mcp.setRequestHandler(ListToolsRequestSchema, async () => ({
       },
     },
     {
-      name: "kiri_capture",
-      description: "Capture screenshots of elements on the currently open page. Call kiri_open first. Pass an array of CSS selectors.",
+      name: "capture",
+      description: "Capture screenshots of elements on the currently open page. Call open first. Pass an array of CSS selectors.",
       inputSchema: {
         type: "object",
         properties: {
@@ -99,7 +99,7 @@ mcp.setRequestHandler(ListToolsRequestSchema, async () => ({
       },
     },
     {
-      name: "kiri_ocr",
+      name: "ocr",
       description: "OCR text from an image. Without translations: returns text + bounding boxes. With translations: creates overlay image.",
       inputSchema: {
         type: "object",
@@ -126,8 +126,8 @@ mcp.setRequestHandler(ListToolsRequestSchema, async () => ({
       },
     },
     {
-      name: "kiri_done",
-      description: "Generate the final Markdown file from all captured images. Call after all kiri_open/kiri_capture cycles are complete.",
+      name: "done",
+      description: "Generate the final Markdown file from all captured images. Call after all open/capture cycles are complete.",
       inputSchema: {
         type: "object",
         properties: {
@@ -143,7 +143,7 @@ mcp.setRequestHandler(CallToolRequestSchema, async (req) => {
   const args = (req.params.arguments ?? {}) as Record<string, unknown>;
 
   switch (req.params.name) {
-    case "kiri_open": {
+    case "open": {
       const url = args.url as string;
       const translate = args.translate as string | undefined;
       const b = await ensureBrowser();
@@ -249,9 +249,9 @@ mcp.setRequestHandler(CallToolRequestSchema, async (req) => {
       };
     }
 
-    case "kiri_capture": {
+    case "capture": {
       if (!currentPage) {
-        return { content: [{ type: "text", text: "Error: No page open. Call kiri_open first." }] };
+        return { content: [{ type: "text", text: "Error: No page open. Call open first." }] };
       }
 
       const selectors = args.selectors as string[];
@@ -286,7 +286,7 @@ mcp.setRequestHandler(CallToolRequestSchema, async (req) => {
       };
     }
 
-    case "kiri_done": {
+    case "done": {
       // 最後のグループを保存
       if (currentGroup) {
         captureHistory.push(currentGroup);
@@ -335,7 +335,7 @@ mcp.setRequestHandler(CallToolRequestSchema, async (req) => {
       };
     }
 
-    case "kiri_ocr": {
+    case "ocr": {
       const imagePath = args.imagePath as string;
       const translations = args.translations as { text: string; translated: string; bbox: { x0: number; y0: number; x1: number; y1: number } }[] | undefined;
       const localDir = args.localDir as string | undefined;

@@ -17,7 +17,7 @@ Arguments: `$ARGUMENTS`
 ## What Scrapbook does
 
 1. Browse curated media sites for a given theme/topic
-2. Open source articles **with Google Translate** (`kiri_open(url, translate=LANG)`) so the page itself is translated to the user's language
+2. Open source articles **with Google Translate** (`open(url, translate=LANG)`) so the page itself is translated to the user's language
 3. Screenshot translated fragments in bulk (魚拓)
 4. Write a dense Markdown digest with translated screenshots
 
@@ -38,7 +38,7 @@ Arguments: `$ARGUMENTS`
 - **Any topic**: Reddit (`old.reddit.com/r/{topic}`) works as a universal curation layer
 - **X/Twitter**: if curated sites link to tweets, follow and capture them (public tweets work without login)
 
-**Do NOT use web search APIs.** Browse the sites directly via Playwright (kiri_open).
+**Do NOT use web search APIs.** Browse the sites directly via Playwright (open).
 
 ## Output
 
@@ -55,11 +55,11 @@ Check if `./scrapbook.json` exists. If it does, read `output`, `images`, and `in
 
 ### Phase 1: Browse curated media
 
-Use `kiri_open` (without translate) to browse the index/listing pages.
+Use `open` (without translate) to browse the index/listing pages.
 
 1. Choose as many curated media sites as possible for the theme — the more sources, the better
 2. Browse their front pages and/or search for the theme
-3. Read the DOM structure returned by `kiri_open` to find interesting posts related to the theme
+3. Read the DOM structure returned by `open` to find interesting posts related to the theme
 4. Follow links to source articles that look promising
 
 Collect **as many candidate links as possible** (20+) before selecting. More sources = better coverage.
@@ -69,7 +69,7 @@ Collect **as many candidate links as possible** (20+) before selecting. More sou
 Pick **10-15 of the most relevant/interesting articles** for the theme.
 
 For each selected article:
-1. `kiri_open(article_url, translate=LANG)` — open the article **translated to Japanese via Google Translate**
+1. `open(article_url, translate=LANG)` — open the article **translated to Japanese via Google Translate**
 2. Read the translated DOM structure to understand the content
 3. Identify ALL important sections to capture — be generous, not selective:
    - Title and lead paragraph
@@ -83,7 +83,7 @@ For each selected article:
 For each article, capture multiple sections from the **translated** page:
 
 1. Identify CSS selectors for each important section
-2. `kiri_capture([selector1, selector2, ...], localDir)` — screenshot multiple elements at once
+2. `capture([selector1, selector2, ...], localDir)` — screenshot multiple elements at once
 
 **Aim for 3-5 captures per article, 30-50+ total across all articles.**
 
@@ -96,8 +96,8 @@ While reading articles, look for outbound links to primary sources:
 - Data sources, benchmarks
 
 For the most important ones:
-1. `kiri_open(linked_url, translate=LANG)` — open the primary source translated
-2. `kiri_capture(...)` — capture the key sections
+1. `open(linked_url, translate=LANG)` — open the primary source translated
+2. `capture(...)` — capture the key sections
 3. In the final Markdown, nest these under the parent article as `###` subsections
 
 ### Phase 4: Generate Markdown
@@ -134,11 +134,11 @@ Write the Markdown yourself. Structure:
 
 ## Rules
 
-- **Translate pages before capturing** — use `kiri_open(url, translate=LANG)` for articles not in the user's language
+- **Translate pages before capturing** — use `open(url, translate=LANG)` for articles not in the user's language
 - **Capture generously** — more is better. Aim for 30-50+ screenshots total. The user wants to consume large amounts of information
 - If the original text is already in the user's language, capture without translate
 - Browse curated media sites directly — do NOT use web search APIs
-- Use Playwright via `kiri_open` / `kiri_capture` for all browsing and screenshots
+- Use Playwright via `open` / `capture` for all browsing and screenshots
 - No duplicates
 - On error (page won't load, element not found), skip and move on
 - If `$ARGUMENTS` is empty, capture whatever is interesting on major tech curation sites right now

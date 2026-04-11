@@ -23,7 +23,7 @@ export function getKeychainToken(service: string, account: string): string | nul
 
 // --- Browser daemon ---
 
-const SOCKET_PATH = "/tmp/kiri-browser.sock";
+const SOCKET_PATH = "/tmp/scrapbook-browser.sock";
 let _browser: Browser | null = null;
 
 export async function getBrowser(): Promise<Browser> {
@@ -71,11 +71,11 @@ export async function saveImage(imageBuffer: Buffer, title?: string, localDir?: 
     console.error(`Saved: ${filepath}`);
     return filepath;
   } else {
-    const token = getKeychainToken("kiri", "gyazo");
+    const token = getKeychainToken("scrapbook", "gyazo");
     if (!token) {
       console.error("Gyazo token not found in keychain. Set it with:");
-      console.error("  macOS: security add-generic-password -a gyazo -s kiri -w YOUR_TOKEN -U");
-      console.error("  Linux: secret-tool store --label=kiri service kiri key gyazo");
+      console.error("  macOS: security add-generic-password -a gyazo -s scrapbook -w YOUR_TOKEN -U");
+      console.error("  Linux: secret-tool store --label=scrapbook service scrapbook key gyazo");
       console.error("Or use --local <dir> for local storage.");
       process.exit(1);
     }

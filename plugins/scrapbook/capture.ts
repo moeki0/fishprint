@@ -9,8 +9,8 @@ const localDir = parseLocalDir();
 
 if (!arg) {
   console.error("Usage:");
-  console.error("  kiri-capture <url> <sections.json> [--local <dir>]");
-  console.error("  kiri-capture <batch.json> [--local <dir>]");
+  console.error("  scrapbook-capture <url> <sections.json> [--local <dir>]");
+  console.error("  scrapbook-capture <batch.json> [--local <dir>]");
   process.exit(1);
 }
 
@@ -19,7 +19,7 @@ let batch: BatchEntry[];
 if (arg.startsWith("http")) {
   const configPath = process.argv[3];
   if (!configPath) {
-    console.error("Usage: kiri-capture <url> <sections.json> [--local <dir>]");
+    console.error("Usage: scrapbook-capture <url> <sections.json> [--local <dir>]");
     process.exit(1);
   }
   batch = [{ url: arg, sections: JSON.parse(readFileSync(configPath, "utf-8")) }];

@@ -5,15 +5,15 @@ user-invocable: true
 allowed-tools:
   - Read
   - Write
-  - Bash(kiri-read *)
-  - Bash(kiri-capture *)
+  - Bash(scrapbook-read *)
+  - Bash(scrapbook-capture *)
   - Bash(mkdir *)
   - Bash(ls *)
   - Bash(head *)
   - Write(/tmp/*)
 ---
 
-# /kiri:capture — Translated screenshots
+# /scrapbook:capture — Translated screenshots
 
 Arguments: `$ARGUMENTS`
 
@@ -21,14 +21,14 @@ Inject translations into page elements and capture element-level screenshots to 
 
 ## Flow
 
-1. Read page text with `kiri-read "<url>"`
+1. Read page text with `scrapbook-read "<url>"`
 2. Decide which sections to clip and translate
 3. Write `/tmp/sections.json` using the Write tool (not cat)
 4. Capture
 
 ```bash
-kiri-capture "<url>" /tmp/sections.json
-kiri-capture "<url>" /tmp/sections.json --local <dir>
+scrapbook-capture "<url>" /tmp/sections.json
+scrapbook-capture "<url>" /tmp/sections.json --local <dir>
 ```
 
 - Empty `translated` → no translation injection

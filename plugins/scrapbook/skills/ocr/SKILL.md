@@ -5,14 +5,14 @@ user-invocable: true
 allowed-tools:
   - Read
   - Write
-  - Bash(kiri-ocr *)
+  - Bash(scrapbook-ocr *)
   - Bash(mkdir *)
   - Bash(ls *)
   - Bash(head *)
   - Write(/tmp/*)
 ---
 
-# /kiri:ocr — OCR translation overlay
+# /scrapbook:ocr — OCR translation overlay
 
 Arguments: `$ARGUMENTS`
 
@@ -23,7 +23,7 @@ Extract text from images via tesseract OCR and overlay translations on a light g
 ### Step 1: OCR
 
 ```bash
-kiri-ocr "<image_path_or_url>"
+scrapbook-ocr "<image_path_or_url>"
 ```
 
 → Returns JSON with text lines and bounding boxes.
@@ -41,8 +41,8 @@ Based on OCR results:
 ### Step 3: Apply overlay
 
 ```bash
-kiri-ocr "<image_path_or_url>" /tmp/translations.json
-kiri-ocr "<image_path_or_url>" /tmp/translations.json --local <dir>
+scrapbook-ocr "<image_path_or_url>" /tmp/translations.json
+scrapbook-ocr "<image_path_or_url>" /tmp/translations.json --local <dir>
 ```
 
 → Fills original text regions with light gray and draws translated text on top.
