@@ -10,7 +10,7 @@
       "name": "scrapbook",
       "displayName": "Kiri",
       "description": "Webコンテンツを切り取り、翻訳し、まとめる。翻訳スクショ・OCR翻訳オーバーレイ・Markdown生成。",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "source": "./plugins/kiri"
     }
   ]
