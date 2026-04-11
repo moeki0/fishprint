@@ -98,15 +98,17 @@ Research background for each topic. The goal is **not** to write long commentary
 - **WebFetch** to read article text (no browser needed, fast)
 - For tweets, check the full thread, quoted tweets, and replies
 
-### Phase 4: Capture (per URL)
+### Phase 4: Capture
 
 **This is the most important phase. Clip a lot.**
 
 Claude Code decides selectors and translations based on page content. Aim for 5–10 clippings per page.
 
-**Step 1: Read page text**
+**For speed: read all pages first with WebFetch (parallel), then batch capture all at once.**
 
-Use **WebFetch** to read the page content. No browser needed — fast.
+**Step 1: Read all pages**
+
+Use **WebFetch** for each URL to get text content. Call multiple WebFetch in parallel — no browser needed, fast.
 
 **Step 2: Write translation JSON (use the Write tool, not cat)**
 
@@ -133,17 +135,26 @@ Use the Write tool to create `/tmp/sections.json`. **Be generous with clippings.
 
 **Step 3: Capture**
 
-Gyazo mode:
-```bash
-kiri-capture "<url>" /tmp/sections.json
+**Prefer batch mode** — process all URLs with a single browser launch.
+
+Write all pages' sections to a single batch JSON with the Write tool:
+```json
+[
+  { "url": "https://...", "sections": [ { "selector": "h1", "translated": "..." }, ... ] },
+  { "url": "https://...", "sections": [ { "selector": "h1", "translated": "..." }, ... ] }
+]
 ```
 
-Local mode:
+```bash
+kiri-capture /tmp/batch.json --local <output_dir>
+```
+
+Single URL mode also works:
 ```bash
 kiri-capture "<url>" /tmp/sections.json --local <output_dir>
 ```
 
-→ Each element is captured via `element.screenshot()`. Returns image URLs or local paths.
+→ All pages are captured in parallel with one browser. Returns image URLs or local paths.
 
 **Step 4: OCR translation overlay (when needed)**
 
