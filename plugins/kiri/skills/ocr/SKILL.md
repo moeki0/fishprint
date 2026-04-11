@@ -6,6 +6,8 @@ allowed-tools:
   - Read
   - Write
   - Bash(*/kiri-run.sh *)
+  - Bash(mkdir *)
+  - Bash(ls *)
 ---
 
 # /kiri:ocr — OCR翻訳オーバーレイ

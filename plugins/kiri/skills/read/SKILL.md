@@ -4,6 +4,8 @@ description: WebページのテキストをPlaywrightで読み取る。「ペー
 user-invocable: true
 allowed-tools:
   - Bash(*/kiri-run.sh *)
+  - Bash(mkdir *)
+  - Bash(ls *)
 ---
 
 # /kiri:read — Webページのテキスト読み取り

@@ -7,6 +7,8 @@ allowed-tools:
   - Read
   - Write
   - Bash(*/kiri-go.sh *)
+  - Bash(mkdir *)
+  - Bash(ls *)
   - mcp__claude-in-chrome__*
 ---
 

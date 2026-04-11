@@ -6,6 +6,8 @@ allowed-tools:
   - Read
   - Write
   - Bash(*/kiri-capture.sh *)
+  - Bash(mkdir *)
+  - Bash(ls *)
 ---
 
 # /kiri:capture — 翻訳スクショ
