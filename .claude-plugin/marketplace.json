@@ -1,7 +1,10 @@
 {
   "name": "kiri",
-  "displayName": "Kiri",
   "description": "Web content clipper with translated screenshots and OCR for Claude Code",
+  "owner": {
+    "name": "moeki",
+    "email": "hi@moeki.org"
+  },
   "plugins": [
     {
       "name": "kiri",
