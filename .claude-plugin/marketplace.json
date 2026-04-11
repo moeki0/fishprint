@@ -10,7 +10,7 @@
       "name": "kiri",
       "displayName": "Kiri",
       "description": "Webコンテンツを切り取り、翻訳し、まとめる。翻訳スクショ・OCR翻訳オーバーレイ・Markdown生成。",
-      "version": "0.5.0",
+      "version": "0.6.0",
       "source": "./plugins/kiri"
     }
   ]
