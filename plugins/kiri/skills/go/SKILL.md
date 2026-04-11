@@ -6,7 +6,9 @@ allowed-tools:
   - WebSearch
   - Read
   - Write
-  - Bash(*/kiri-go.sh *)
+  - Bash(*/kiri-read.sh *)
+  - Bash(*/kiri-capture.sh *)
+  - Bash(*/kiri-ocr.sh *)
   - Bash(mkdir *)
   - Bash(ls *)
   - mcp__claude-in-chrome__*
@@ -19,7 +21,7 @@ allowed-tools:
 ## テーマの決定
 
 優先順位：
-1. **引数が渡された場合** → それをthemeとして使う（例: `/kiri AI最新ニュース`）
+1. **引数が渡された場合** → それをthemeとして使う（例: `/kiri:go AI最新ニュース`）
 2. **`./kiri.json`がある場合** → そこからtheme・output・imagesを読む
 3. **どちらもない場合** → ユーザーに何をまとめたいか聞く
 
@@ -75,7 +77,7 @@ allowed-tools:
 厳選した各ニュースについて、解説を書くための背景を調べる。
 
 - **WebSearch** で関連情報を検索（企業の過去の動向、技術的文脈、業界への影響など）
-- **kiri-go.sh read** で関連記事の全文を読む
+- **kiri-read.sh** で関連記事の全文を読む
 - ツイートの場合はスレッド全体、引用元、リプライの文脈も確認
 
 調査の観点：
@@ -90,7 +92,7 @@ Claude Codeがページ内容を元にセレクタと翻訳を決定する。
 
 **Step 1: ページのテキストを読み取る**
 ```bash
-${CLAUDE_SKILL_DIR}/kiri-go.sh read "<url>"
+${CLAUDE_SKILL_DIR}/kiri-read.sh "<url>"
 ```
 
 **Step 2: 翻訳JSONを書き出し（Writeツールを使う。catは使わない）**
@@ -106,16 +108,16 @@ Writeツールで `/tmp/sections.json` を作成する：
 - `translated` が空文字なら翻訳注入しない
 - `capture: false` なら翻訳注入だけしてスクショしない
 
-**Step 3: キャプチャ**
+**Step 3: テキストのキャプチャ**
 
 Gyazoモード:
 ```bash
-${CLAUDE_SKILL_DIR}/kiri-go.sh capture "<url>" /tmp/sections.json
+${CLAUDE_SKILL_DIR}/kiri-capture.sh "<url>" /tmp/sections.json
 ```
 
 ローカルモード:
 ```bash
-${CLAUDE_SKILL_DIR}/kiri-go.sh capture "<url>" /tmp/sections.json --local <output_dir>
+${CLAUDE_SKILL_DIR}/kiri-capture.sh "<url>" /tmp/sections.json --local <output_dir>
 ```
 
 → 各要素を `element.screenshot()` で撮影。画像URL or ローカルパスが返る。
@@ -136,9 +138,12 @@ ${CLAUDE_SKILL_DIR}/kiri-go.sh capture "<url>" /tmp/sections.json --local <outpu
 
 英語テキストを含む画像はOCRで翻訳オーバーレイも検討する：
 ```bash
-${CLAUDE_SKILL_DIR}/kiri-go.sh ocr <image_path>
+${CLAUDE_SKILL_DIR}/kiri-ocr.sh <image_path>
 ```
-→ OCR結果を元に翻訳JSONを作成し、オーバーレイを適用。
+→ OCR結果を元に翻訳JSONを作成し、オーバーレイを適用：
+```bash
+${CLAUDE_SKILL_DIR}/kiri-ocr.sh <image_path> /tmp/translations.json
+```
 
 ### Phase 5: Markdownページ生成
 
