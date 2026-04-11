@@ -194,18 +194,17 @@ mcp.setRequestHandler(CallToolRequestSchema, async (req) => {
         }
       });
 
-      // HTML構造を簡略化して返す
+      // HTML構造を返す（リンク・テキストを省略しない）
       const result = await currentPage.evaluate(() => {
         const main = document.querySelector("article") || document.querySelector("main") || document.querySelector('[role="main"]') || document.body;
 
-        // 要素ツリーを簡略化：タグ名、セレクタ、テキスト冒頭
         function summarize(el: Element, depth: number): string {
-          if (depth > 4) return "";
+          if (depth > 8) return "";
           const tag = el.tagName.toLowerCase();
-          const skip = new Set(["script", "style", "noscript", "svg", "path", "nav", "footer", "header", "aside", "iframe"]);
+          const skip = new Set(["script", "style", "noscript", "svg", "path", "iframe"]);
           if (skip.has(tag)) return "";
 
-          const important = new Set(["h1", "h2", "h3", "h4", "p", "blockquote", "li", "figcaption", "img", "figure", "table", "tr", "td", "th", "a"]);
+          const important = new Set(["h1", "h2", "h3", "h4", "h5", "h6", "p", "blockquote", "li", "figcaption", "img", "figure", "table", "tr", "td", "th", "a", "pre", "code", "time", "span"]);
 
           let selector = tag;
           if (el.id) selector += `#${el.id}`;
@@ -218,10 +217,14 @@ mcp.setRequestHandler(CallToolRequestSchema, async (req) => {
           const lines: string[] = [];
 
           if (important.has(tag)) {
-            const text = el.textContent?.trim().slice(0, 50) || "";
-            const src = (el as HTMLImageElement).src ? ` src="${(el as HTMLImageElement).src.slice(0, 60)}"` : "";
-            lines.push(`${indent}<${selector}${src}>${text ? " " + text : ""}`);
-          } else if (tag === "div" || tag === "section" || tag === "article" || tag === "main") {
+            const text = el.textContent?.trim() || "";
+            const href = (el as HTMLAnchorElement).href || "";
+            const src = (el as HTMLImageElement).src || "";
+            let attrs = "";
+            if (href) attrs += ` href="${href}"`;
+            if (src) attrs += ` src="${src}"`;
+            lines.push(`${indent}<${selector}${attrs}>${text ? " " + text : ""}`);
+          } else if (tag === "div" || tag === "section" || tag === "article" || tag === "main" || tag === "nav" || tag === "header" || tag === "footer" || tag === "aside") {
             lines.push(`${indent}<${selector}>`);
           }
 
@@ -234,7 +237,7 @@ mcp.setRequestHandler(CallToolRequestSchema, async (req) => {
         }
 
         const structure = summarize(main, 0);
-        return { structure: structure.slice(0, 8000) };
+        return { structure };
       });
 
       // 前のグループを保存、新しいグループを開始
