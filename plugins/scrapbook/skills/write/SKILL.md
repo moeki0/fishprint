@@ -58,5 +58,4 @@ Narrative explaining what this source adds.
 - **Embed important images from articles** (graphs, benchmark tables, architecture diagrams, charts) using their original URL: `![description](https://example.com/image.png)`. Only include images that add information text cannot convey.
 - `##` heading: article title in user's language
 - Link to original source at the end
-- If `instructions` from scrapbook.json are provided, follow them
 - **NEVER invoke Python, Node, or any programming language via Bash.**

@@ -43,17 +43,6 @@ Arguments: `$ARGUMENTS`
 
 ## Flow
 
-### Phase 0: Load config — MANDATORY, DO NOT SKIP
-
-**You MUST do the following before anything else:**
-
-1. Use the `Read` tool to read the file `scrapbook.json` **in the user's working directory** (the project root where Claude Code was launched). This is the same directory shown in `git status`. Do NOT look in plugin directories or subdirectories.
-2. Remember `output` and `instructions` from scrapbook.json for later.
-
-If `scrapbook.json` does not exist, use defaults (`output`: `scrapbook_{{date}}.md`).
-
-**Do NOT proceed to Phase 1 without completing Phase 0.**
-
 ### Phase 1: Browse & collect URLs
 
 Use `open(url)` to browse sites. Read the DOM structure to find interesting posts and articles.
@@ -80,7 +69,7 @@ Use the `Write` tool to create the final Markdown file:
 
 1. Add a heading: `# Scrapbook: {theme} — {date}`
 2. Concatenate all sections from Phase 2, separated by `---`
-3. Write to the output path from scrapbook.json (or default `scrapbook_{{date}}.md`)
+3. Choose an appropriate output file name and location
 
 ## Rules
 
