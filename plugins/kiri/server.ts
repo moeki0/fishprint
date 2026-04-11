@@ -194,20 +194,47 @@ mcp.setRequestHandler(CallToolRequestSchema, async (req) => {
         }
       });
 
-      // テキスト + DOM構造ヒント
+      // HTML構造を簡略化して返す
       const result = await currentPage.evaluate(() => {
         const main = document.querySelector("article") || document.querySelector("main") || document.querySelector('[role="main"]') || document.body;
-        const text = main.innerText;
 
-        // セレクタ候補を生成
-        const hints: string[] = [];
-        const tags = ["h1", "h2", "h3", "p", "blockquote", "figure", "img", "table", "ul", "ol"];
-        for (const tag of tags) {
-          const els = main.querySelectorAll(tag);
-          if (els.length > 0) hints.push(`${tag}: ${els.length} found`);
+        // 要素ツリーを簡略化：タグ名、セレクタ、テキスト冒頭
+        function summarize(el: Element, depth: number): string {
+          if (depth > 4) return "";
+          const tag = el.tagName.toLowerCase();
+          const skip = new Set(["script", "style", "noscript", "svg", "path", "nav", "footer", "header", "aside", "iframe"]);
+          if (skip.has(tag)) return "";
+
+          const important = new Set(["h1", "h2", "h3", "h4", "p", "blockquote", "li", "figcaption", "img", "figure", "table", "tr", "td", "th", "a"]);
+
+          let selector = tag;
+          if (el.id) selector += `#${el.id}`;
+          else if (el.className && typeof el.className === "string") {
+            const cls = el.className.trim().split(/\s+/)[0];
+            if (cls) selector += `.${cls}`;
+          }
+
+          const indent = "  ".repeat(depth);
+          const lines: string[] = [];
+
+          if (important.has(tag)) {
+            const text = el.textContent?.trim().slice(0, 50) || "";
+            const src = (el as HTMLImageElement).src ? ` src="${(el as HTMLImageElement).src.slice(0, 60)}"` : "";
+            lines.push(`${indent}<${selector}${src}>${text ? " " + text : ""}`);
+          } else if (tag === "div" || tag === "section" || tag === "article" || tag === "main") {
+            lines.push(`${indent}<${selector}>`);
+          }
+
+          for (const child of el.children) {
+            const childResult = summarize(child, depth + 1);
+            if (childResult) lines.push(childResult);
+          }
+
+          return lines.join("\n");
         }
 
-        return { text: text.slice(0, 5000), hints };
+        const structure = summarize(main, 0);
+        return { structure: structure.slice(0, 8000) };
       });
 
       // 前のグループを保存、新しいグループを開始
@@ -217,7 +244,7 @@ mcp.setRequestHandler(CallToolRequestSchema, async (req) => {
       return {
         content: [{
           type: "text",
-          text: `Opened: ${url}\n\nDOM hints:\n${result.hints.join("\n")}\n\n---\n\n${result.text}`,
+          text: `Opened: ${url}\n\nDOM structure:\n${result.structure}`,
         }],
       };
     }
