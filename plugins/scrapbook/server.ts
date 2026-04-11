@@ -248,13 +248,15 @@ mcp.setRequestHandler(CallToolRequestSchema, async (req) => {
         }
 
         const structure = summarize(main, 0);
-        return { structure };
+        const MAX_CHARS = 50000;
+        const truncated = structure.length > MAX_CHARS;
+        return { structure: truncated ? structure.slice(0, MAX_CHARS) : structure, truncated };
       });
 
       return {
         content: [{
           type: "text",
-          text: `Opened: ${url}\n\nDOM structure:\n${result.structure}`,
+          text: `Opened: ${url}${result.truncated ? " (truncated)" : ""}\n\nDOM structure:\n${result.structure}`,
         }],
       };
     }
