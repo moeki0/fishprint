@@ -5,8 +5,6 @@ user-invocable: true
 allowed-tools:
   - Read
   - Write
-  - Bash(mkdir *)
-  - Bash(ls *)
   - mcp__scrapbook__*
   - Skill(scrapbook:capture)
   - Skill(scrapbook:write)
@@ -84,6 +82,7 @@ Invoke `/scrapbook:write` with the output path, theme, date, language, images di
 
 - **For global/international topics, use English-language sources only**
 - Browse curated media sites directly — do NOT use web search APIs
+- **Do NOT write or run programs** (no Python, Node, shell scripts, etc.). Use only the allowed tools.
 - No duplicates
 - On error, skip and move on
 - If `$ARGUMENTS` is empty, capture whatever is interesting on major tech curation sites right now

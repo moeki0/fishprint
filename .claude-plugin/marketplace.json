@@ -10,7 +10,7 @@
       "name": "scrapbook",
       "displayName": "Scrapbook",
       "description": "Browse curated media, capture text fragments as screenshots (魚拓) with translations",
-      "version": "1.7.3",
+      "version": "1.7.4",
       "source": "./plugins/scrapbook"
     }
   ]

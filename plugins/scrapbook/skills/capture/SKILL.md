@@ -76,4 +76,5 @@ Report all captured image paths/URLs back so the caller can assemble the Markdow
 - **Capture massively** — more is always better. The user wants large amounts of information in small bites
 - **Translate before capturing** — use `open(url, translate=LANG)` for pages not in the target language
 - If the page is already in the target language, open without translate
+- **Do NOT write or run programs** (no Python, Node, shell scripts, etc.). Use only the allowed tools.
 - On error (page won't load, element not found), skip and move on
