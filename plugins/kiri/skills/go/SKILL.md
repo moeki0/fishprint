@@ -83,8 +83,9 @@ For recurring themes, place a config file at project root.
 
 **If `"x"` is included (requires claude-in-chrome MCP):**
 
-Browse the user's **Following timeline only**. X search is unreliable — don't use it.
+Collect from **two sources on X**:
 
+**A. Following timeline:**
 1. `tabs_context_mcp` to check current tabs
 2. `navigate` to `https://x.com/home`, then click the "Following" tab via `javascript_tool`
 3. **Incremental scroll collection** — X virtualizes the DOM (only ~5-7 tweets exist at a time). You MUST:
@@ -93,7 +94,14 @@ Browse the user's **Following timeline only**. X search is unreliable — don't 
    c. Each iteration is a **separate `javascript_tool` call** (NOT async/await in one call — it will timeout)
    d. Repeat 15-20 times to collect 30+ tweets
    e. After collection, read all results from `window.__kiriTweets`
-4. Pick theme-related tweets and links from the collected set
+
+**B. Explore / Trending:**
+1. `navigate` to `https://x.com/explore/tabs/trending`
+2. Use the same incremental scroll collection to gather trending tweets
+3. Also check `https://x.com/explore/tabs/news` for news-related trending topics
+4. Collect tweet URLs and text
+
+5. Merge results from A and B, pick theme-related tweets and links
 
 ### Phase 2: Select
 
