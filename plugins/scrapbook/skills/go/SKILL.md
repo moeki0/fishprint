@@ -55,11 +55,14 @@ Collect **as many candidate article URLs as possible** (20+).
 
 ### Phase 2: Read articles & generate sections
 
+**Open up to 4 pages in parallel** to maximize throughput. Call `open(url)` for multiple articles at once — each returns a page ID, and you can process them concurrently.
+
 For each article:
 
-1. `open(url)` to read the full content
+1. `open(url)` to read the full content (call up to 4 `open` calls in parallel)
 2. Also follow outbound links to primary sources (papers, repos, official docs) and read those
 3. Invoke `/scrapbook:write` with the article content, quotes, source URL, and language — it returns one Markdown section for this article
+4. `close(id)` to free the page when done
 
 **Repeat for every article.** Each `/scrapbook:write` call produces an independent section. This ensures each article gets full attention and volume.
 

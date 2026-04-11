@@ -10,7 +10,7 @@
       "name": "scrapbook",
       "displayName": "Scrapbook",
       "description": "Browse the web, collect verbatim quotes, and write citation-driven digests",
-      "version": "2.2.0",
+      "version": "2.2.1",
       "source": "./plugins/scrapbook"
     }
   ]

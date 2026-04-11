@@ -74,7 +74,7 @@ mcp.setRequestHandler(ListToolsRequestSchema, async () => ({
   tools: [
     {
       name: "open",
-      description: "Open a web page in a new browser tab and return its DOM structure with text and links. Returns a page ID for subsequent operations. Multiple pages can be open simultaneously.",
+      description: "Open a web page and return its DOM structure with text and links. Returns a page ID. Up to 4 pages can be open in parallel — call open multiple times concurrently for faster browsing.",
       inputSchema: {
         type: "object",
         properties: {
