@@ -67,11 +67,12 @@ mcp.setRequestHandler(ListToolsRequestSchema, async () => ({
   tools: [
     {
       name: "kiri_open",
-      description: "Open a web page and return its text content with DOM structure hints. Browser stays alive for subsequent captures.",
+      description: "Open a web page and return its text content with DOM structure hints. Browser stays alive for subsequent captures. Set translate to auto-translate the page via Google Translate before capture.",
       inputSchema: {
         type: "object",
         properties: {
           url: { type: "string", description: "URL to open" },
+          translate: { type: "string", description: "Target language code (e.g. 'ja', 'en', 'ko'). Omit to skip translation." },
         },
         required: ["url"],
       },
@@ -135,20 +136,43 @@ mcp.setRequestHandler(CallToolRequestSchema, async (req) => {
   switch (req.params.name) {
     case "kiri_open": {
       const url = args.url as string;
+      const translate = args.translate as string | undefined;
       const b = await ensureBrowser();
 
-      // 前のページがあれば閉じる
       if (currentPage) {
         await currentPage.context().close().catch(() => {});
       }
 
       const context = await b.newContext({ viewport: { width: 1280, height: 900 }, userAgent: UA });
       currentPage = await context.newPage();
-      await currentPage.goto(url, { waitUntil: "domcontentloaded", timeout: 30000 });
+
+      // Google Translate経由で開く or 直接開く
+      const pageUrl = translate
+        ? `https://translate.google.com/translate?sl=auto&tl=${translate}&u=${encodeURIComponent(url)}`
+        : url;
+
+      await currentPage.goto(pageUrl, { waitUntil: "domcontentloaded", timeout: 30000 });
       await Promise.race([
         currentPage.waitForLoadState("networkidle"),
-        currentPage.waitForTimeout(2000),
+        currentPage.waitForTimeout(3000),
       ]);
+
+      // Google Translateの場合、iframeの中身に切り替え
+      if (translate) {
+        const frame = currentPage.frames().find(f => f.url().includes(url.replace(/^https?:\/\//, "")));
+        if (frame) {
+          // iframeの中で操作するためにframeを使う
+          // ただしelement.screenshot()はメインページから呼ぶ必要がある
+          // Google Translateバナーを非表示
+          await currentPage.evaluate(() => {
+            const banner = document.querySelector("#gt-nvframe") as HTMLElement;
+            if (banner) banner.style.display = "none";
+            document.body.style.top = "0";
+            document.body.style.position = "static";
+          });
+        }
+      }
+
       currentUrl = url;
 
       // バナー非表示

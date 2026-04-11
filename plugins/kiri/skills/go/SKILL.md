@@ -106,33 +106,38 @@ Use the MCP tools `kiri_open` and `kiri_capture`. The browser stays alive betwee
 
 **Step 1: Open the page**
 
-Call `kiri_open(url)`. This returns:
-- Page text content
+Call `kiri_open(url, translate?)`.
+
+- If the page is in a foreign language, set `translate` to the target language (e.g. `"ja"` for Japanese). **Google Translate auto-translates the entire page — no need to write translations manually.**
+- If the page is already in the target language, omit `translate`
+
+Returns:
+- Page text content (already translated if `translate` was set)
 - DOM structure hints (which elements exist: h1, p, img, figure, etc.)
 
 Use these hints to decide selectors. No guessing.
 
 **Step 2: Capture**
 
-Call `kiri_capture(sections, localDir?)` with the selectors and translations.
+Call `kiri_capture(sections, localDir?)`. Since the page is already translated, just clip — no `translated` text needed.
 
 ```json
 {
   "sections": [
-    { "selector": "h1", "translated": "Translated title" },
-    { "selector": "article p:nth-of-type(1)", "translated": "Translated lead" },
-    { "selector": "article p:nth-of-type(2)", "translated": "Translated paragraph 2" },
+    { "selector": "h1", "translated": "" },
+    { "selector": "article p:nth-of-type(1)", "translated": "" },
+    { "selector": "article p:nth-of-type(2)", "translated": "" },
+    { "selector": "article p:nth-of-type(3)", "translated": "" },
     { "selector": "figure:nth-of-type(1)", "translated": "" },
     { "selector": "article img:nth-of-type(1)", "translated": "" },
-    { "selector": "blockquote", "translated": "Translated quote" }
+    { "selector": "blockquote", "translated": "" }
   ],
   "localDir": "/path/to/kiri_images"
 }
 ```
 
-- Empty `translated` → no translation injection (clip as-is, good for images/tables)
+- `translated` can still be used for manual translation override if Google Translate is not used
 - `capture: false` → inject translation but don't screenshot
-- If the page is already in the target language, no translation needed — just clip
 - **Be generous: 5-10 clippings per page**
 
 **If selectors miss, adjust and call `kiri_capture` again** — the page is still open.
