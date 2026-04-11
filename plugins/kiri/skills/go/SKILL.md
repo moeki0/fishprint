@@ -168,9 +168,9 @@ For images with foreign-language text, call `kiri_ocr(imagePath)` to get text + 
 
 ### Phase 5: Generate Markdown
 
-Call `kiri_done(output)` to automatically generate the Markdown file.
+**Do NOT write the Markdown yourself.** Call `kiri_done(output)` — it auto-generates the file from capture history.
 
-All captured images are assembled in order, grouped by source URL, separated by `---`, with source links.
+All captured images are assembled in order, grouped by source URL, separated by `---`, with source links. No manual writing needed.
 
 The `output` path comes from `kiri.json` or defaults to `kiri_{{date}}.md`. `{{date}}` is auto-replaced with `YYYY_MM_DD`.
 
