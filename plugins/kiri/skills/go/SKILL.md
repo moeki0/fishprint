@@ -91,15 +91,15 @@ Claude Codeがページ内容を元にセレクタと翻訳を決定する。
 ${CLAUDE_SKILL_DIR}/kiri-go.sh read "<url>"
 ```
 
-**Step 2: 翻訳JSONを書き出し**
-```bash
-cat > /tmp/sections.json << 'EOF'
+**Step 2: 翻訳JSONを書き出し（Writeツールを使う。catは使わない）**
+
+Writeツールで `/tmp/sections.json` を作成する：
+```json
 [
   { "selector": "h1", "translated": "翻訳タイトル" },
   { "selector": ".intro > p", "translated": "翻訳本文" },
   { "selector": "div.x", "translated": "翻訳テキスト", "capture": false }
 ]
-EOF
 ```
 - `translated` が空文字なら翻訳注入しない
 - `capture: false` なら翻訳注入だけしてスクショしない
