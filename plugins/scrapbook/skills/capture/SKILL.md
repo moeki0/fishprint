@@ -77,4 +77,5 @@ Report all captured image paths/URLs back so the caller can assemble the Markdow
 - **Translate before capturing** — use `open(url, translate=LANG)` for pages not in the target language
 - If the page is already in the target language, open without translate
 - **NEVER invoke Python, Node, or any programming language via Bash.** Bash is for simple commands (ls, mkdir) only. Do not write or execute scripts.
+- **If open returns only empty containers with no visible text content, the page failed to render (SPA issue). Skip it immediately** — do not attempt to capture empty containers
 - On error (page won't load, element not found), skip and move on
