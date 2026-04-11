@@ -12,6 +12,7 @@ allowed-tools:
   - Bash(mkdir *)
   - Bash(ls *)
   - Bash(head *)
+  - Write(/tmp/*)
   - mcp__claude-in-chrome__*
 ---
 

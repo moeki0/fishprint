@@ -7,6 +7,7 @@ allowed-tools:
   - Bash(mkdir *)
   - Bash(ls *)
   - Bash(head *)
+  - Write(/tmp/*)
 ---
 
 # /kiri:read — Webページのテキスト読み取り

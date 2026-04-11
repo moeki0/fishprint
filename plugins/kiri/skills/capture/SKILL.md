@@ -9,6 +9,7 @@ allowed-tools:
   - Bash(mkdir *)
   - Bash(ls *)
   - Bash(head *)
+  - Write(/tmp/*)
 ---
 
 # /kiri:capture — 翻訳スクショ

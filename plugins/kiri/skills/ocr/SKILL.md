@@ -9,6 +9,7 @@ allowed-tools:
   - Bash(mkdir *)
   - Bash(ls *)
   - Bash(head *)
+  - Write(/tmp/*)
 ---
 
 # /kiri:ocr — OCR翻訳オーバーレイ
