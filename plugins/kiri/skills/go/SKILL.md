@@ -110,15 +110,35 @@ Writeツールで `/tmp/sections.json` を作成する：
 
 Gyazoモード:
 ```bash
-${CLAUDE_SKILL_DIR}/kiri-go.sh "<url>" /tmp/sections.json
+${CLAUDE_SKILL_DIR}/kiri-go.sh capture "<url>" /tmp/sections.json
 ```
 
 ローカルモード:
 ```bash
-${CLAUDE_SKILL_DIR}/kiri-go.sh "<url>" /tmp/sections.json --local <output_dir>
+${CLAUDE_SKILL_DIR}/kiri-go.sh capture "<url>" /tmp/sections.json --local <output_dir>
 ```
 
 → 各要素を `element.screenshot()` で撮影。画像URL or ローカルパスが返る。
+
+**Step 4: ページ内の画像を収集**
+
+記事内のチャート、図表、スクリーンショット、インフォグラフィックなど重要な画像を積極的に収集する。
+テキストだけでは伝わらない視覚情報はニュースの理解に不可欠。
+
+セレクタに`img`要素を含めてキャプチャする：
+```json
+[
+  { "selector": "article img:nth-of-type(1)", "translated": "" },
+  { "selector": "figure img", "translated": "" },
+  { "selector": ".chart-container", "translated": "" }
+]
+```
+
+英語テキストを含む画像はOCRで翻訳オーバーレイも検討する：
+```bash
+${CLAUDE_SKILL_DIR}/kiri-go.sh ocr <image_path>
+```
+→ OCR結果を元に翻訳JSONを作成し、オーバーレイを適用。
 
 ### Phase 5: Markdownページ生成
 
