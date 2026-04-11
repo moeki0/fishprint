@@ -11,6 +11,7 @@ allowed-tools:
   - Bash(*/kiri-ocr.sh *)
   - Bash(mkdir *)
   - Bash(ls *)
+  - Bash(head *)
   - mcp__claude-in-chrome__*
 ---
 

@@ -6,6 +6,7 @@ allowed-tools:
   - Bash(*/kiri-run.sh *)
   - Bash(mkdir *)
   - Bash(ls *)
+  - Bash(head *)
 ---
 
 # /kiri:read — Webページのテキスト読み取り

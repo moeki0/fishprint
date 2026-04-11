@@ -8,6 +8,7 @@ allowed-tools:
   - Bash(*/kiri-capture.sh *)
   - Bash(mkdir *)
   - Bash(ls *)
+  - Bash(head *)
 ---
 
 # /kiri:capture — 翻訳スクショ
