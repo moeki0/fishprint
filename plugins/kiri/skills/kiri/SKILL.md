@@ -1,6 +1,6 @@
 ---
 name: kiri
-description: ./kiri.jsonのthemeに基づいてWebから情報を収集し、翻訳スクショ・OCR翻訳付きのMarkdownページを生成する。「ニュース」「リサーチ」「まとめ」と言った時に使う。
+description: Webから情報を収集し、翻訳スクショ・OCR翻訳付きのMarkdownページを生成する。「ニュース」「リサーチ」「まとめ」と言った時に使う。
 user-invocable: true
 allowed-tools:
   - WebSearch
@@ -12,41 +12,33 @@ allowed-tools:
 
 # Kiri — Webコンテンツを切り取り、翻訳し、まとめる
 
-./kiri.jsonの`theme`に基づいてWebから情報を収集し、背景を調査し、翻訳スクショ付きのMarkdownページを生成する。
+引数: `$ARGUMENTS`
 
-## 初回セットアップ
+## テーマの決定
 
-`./kiri.json`が存在しない場合、まずユーザーと対話して設定を作成する：
+優先順位：
+1. **引数が渡された場合** → それをthemeとして使う（例: `/kiri AI最新ニュース`）
+2. **`./kiri.json`がある場合** → そこからtheme・output・imagesを読む
+3. **どちらもない場合** → ユーザーに何をまとめたいか聞く
 
-1. 何をまとめたいか聞く（例：「AIニュース」「量子コンピュータの最新研究」「フロントエンド技術動向」）
-2. 出力先を聞く（例：`wiki/ai_news_{{date}}.md`、`reports/research_{{date}}.md`）
-3. 画像保存方法を聞く（`gyazo` or `local`）
-4. 回答を元に`./kiri.json`を生成して保存
+引数のみの場合のデフォルト：
+- `output`: `kiri_{{date}}.md`（カレントディレクトリ）
+- `images`: `local`（`./kiri_images/`に保存）
 
-```
-例：
-ユーザー「AIの最新ニュースをまとめたい」
-→ kiri.json:
-{
-  "name": "AIニュース",
-  "theme": "AI・LLM・機械学習の最新動向",
-  "output": "ai_news_{{date}}.md",
-  "images": "local"
-}
-```
+## kiri.json（オプション）
 
-## ./kiri.json
+繰り返し同じテーマで使う場合に設定ファイルを置ける。
 
 ```json
 {
-  "name": "ニュースレター名",
-  "theme": "テーマの説明。検索・選別・解説の全判断軸になる",
-  "output": "path/to/output_{{date}}.md",
-  "images": "gyazo" | "local"
+  "name": "週刊AIニュース",
+  "theme": "AI・LLM・機械学習の最新動向",
+  "output": "wiki/ai_news_{{date}}.md",
+  "images": "gyazo"
 }
 ```
 
-- `images: "gyazo"` → Gyazoにアップロード、画像URLを返す（`.env`にGYAZO_ACCESS_TOKEN必要）
+- `images: "gyazo"` → Gyazoにアップロード（キーチェーンにトークンが必要）
 - `images: "local"` → outputと同じディレクトリに画像を保存
 
 ## フロー
@@ -120,10 +112,10 @@ ${CLAUDE_SKILL_DIR}/run.sh "<url>" /tmp/sections.json --local <output_dir>
 
 ### Phase 5: Markdownページ生成
 
-./kiri.jsonの`output`パスに Markdownファイルを作成。
+出力先パスにMarkdownファイルを作成。
 
 ```markdown
-# ニュースレター名 YYYY年MM月DD日
+# タイトル YYYY年MM月DD日
 
 ## 1. 記事タイトル
 ![](画像URL or パス)
