@@ -82,11 +82,16 @@ For recurring themes, place a config file at project root.
 - Seek diverse sources (not just mainstream — blogs, specialist sites, social media too)
 
 **If `"x"` is included (requires claude-in-chrome MCP):**
+
+Browse X to find theme-related posts. X is a primary source — search aggressively.
+
 1. `tabs_context_mcp` to check current tabs
 2. `tabs_create_mcp` to open `https://x.com/home`
-3. `javascript_tool` to extract tweet URLs and text
+3. `javascript_tool` to extract tweet URLs and text from the timeline
 4. Pick theme-related tweets and links
-5. Scroll for more if needed
+5. Scroll down and extract more (repeat 2-3 times)
+6. **Also search X directly**: navigate to `https://x.com/search?q=<query>&f=live` with theme-related keywords (English and user's language)
+7. Extract tweet URLs from search results too
 
 ### Phase 2: Select
 
