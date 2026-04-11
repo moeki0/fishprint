@@ -174,7 +174,7 @@ mcp.setRequestHandler(CallToolRequestSchema, async (req) => {
       await currentPage.goto(pageUrl, { waitUntil: "domcontentloaded", timeout: 30000 });
       await Promise.race([
         currentPage.waitForLoadState("networkidle"),
-        currentPage.waitForTimeout(3000),
+        currentPage.waitForTimeout(10000),
       ]);
 
       // Google Translateの場合、iframeの中身に切り替え
