@@ -1,6 +1,6 @@
 {
   "name": "scrapbook",
-  "description": "Web content clipper with translated screenshots and OCR for Claude Code",
+  "description": "Browse X timeline, screenshot tweets, and write context digests",
   "owner": {
     "name": "moeki",
     "email": "hi@moeki.org"
@@ -8,10 +8,10 @@
   "plugins": [
     {
       "name": "scrapbook",
-      "displayName": "Kiri",
-      "description": "Webコンテンツを切り取り、翻訳し、まとめる。翻訳スクショ・OCR翻訳オーバーレイ・Markdown生成。",
+      "displayName": "Scrapbook",
+      "description": "Browse X timeline, screenshot tweets, and write context digests",
       "version": "1.1.0",
-      "source": "./plugins/kiri"
+      "source": "./plugins/scrapbook"
     }
   ]
 }
