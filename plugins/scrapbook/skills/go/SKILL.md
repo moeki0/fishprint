@@ -1,6 +1,6 @@
 ---
 name: go
-description: Browse the web, collect quotes, and write a text-driven digest with original-language citations. Use when asked for "news", "what's happening", "scrapbook", or to research a topic.
+description: Browse the web, collect quotes, and write a text-driven digest with citations. Use when asked for "news", "what's happening", "scrapbook", or to research a topic.
 user-invocable: true
 allowed-tools:
   - Read
@@ -15,13 +15,13 @@ Arguments: `$ARGUMENTS`
 
 ## What Scrapbook does
 
-1. Browse curated media sites and the web for a given theme/topic
-2. Read articles, extract important quotes verbatim
-3. Hand off to `/scrapbook:write` to generate a text-driven Markdown digest
+1. Browse the web for a given theme/topic
+2. For each article, read it and invoke `/scrapbook:write` to generate a section
+3. Concatenate all sections into a single Markdown digest
 
-**Output format: narrative text in the user's language, with blockquote citations translated to the user's language (魚拓).** No screenshots, no images.
+**Output format: narrative text with blockquote citations, all in the user's language.** No screenshots, no images (except important figures from articles).
 
-**Language: detect the language the user used in `$ARGUMENTS` (or the conversation). Write everything — narrative and citations — in that language.**
+**Language: detect the language the user used in `$ARGUMENTS` (or the conversation). Write everything in that language.**
 
 ## Sources
 
@@ -54,7 +54,7 @@ If `scrapbook.json` does not exist, use defaults (`output`: `scrapbook_{{date}}.
 
 **Do NOT proceed to Phase 1 without completing Phase 0.**
 
-### Phase 1: Browse & collect
+### Phase 1: Browse & collect URLs
 
 Use `open(url)` to browse sites. Read the DOM structure to find interesting posts and articles.
 
@@ -64,22 +64,23 @@ Use `open(url)` to browse sites. Read the DOM structure to find interesting post
 
 Collect **as many candidate article URLs as possible** (20+).
 
-### Phase 2: Read & extract quotes
+### Phase 2: Read articles & generate sections
 
-For each interesting article, use `open(url)` to read the full content.
+For each article:
 
-Extract **verbatim quotes** from the original text — the exact words as written. These are the 魚拓 (citations). Collect:
-- Key arguments and insights
-- Notable statements and conclusions
-- Data, numbers, benchmarks
-- Community comments and reactions (on HN, Lobsters, Reddit)
-- **Important image URLs** (graphs, charts, diagrams, benchmark tables) — note the `src` from `img` tags in the DOM
+1. `open(url)` to read the full content
+2. Also follow outbound links to primary sources (papers, repos, official docs) and read those
+3. Invoke `/scrapbook:write` with the article content, quotes, source URL, and language — it returns one Markdown section for this article
 
-**Also follow outbound links** to primary sources (papers, repos, official docs) and extract quotes from those too.
+**Repeat for every article.** Each `/scrapbook:write` call produces an independent section. This ensures each article gets full attention and volume.
 
-### Phase 3: Write
+### Phase 3: Assemble final digest
 
-Invoke `/scrapbook:write` with the collected quotes and source URLs. The write skill generates the final Markdown.
+Use the `Write` tool to create the final Markdown file:
+
+1. Add a heading: `# Scrapbook: {theme} — {date}`
+2. Concatenate all sections from Phase 2, separated by `---`
+3. Write to the output path from scrapbook.json (or default `scrapbook_{{date}}.md`)
 
 ## Rules
 
