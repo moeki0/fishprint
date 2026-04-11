@@ -19,9 +19,9 @@ Arguments: `$ARGUMENTS`
 2. Read articles, extract important quotes verbatim
 3. Hand off to `/scrapbook:write` to generate a text-driven Markdown digest
 
-**Output format: narrative text in the user's language, with blockquote citations in the original language (魚拓).** No screenshots, no images.
+**Output format: narrative text in the user's language, with blockquote citations translated to the user's language (魚拓).** No screenshots, no images.
 
-**Language: detect the language the user used in `$ARGUMENTS` (or the conversation). Write all narrative text in that language. Keep all citations in their original language.**
+**Language: detect the language the user used in `$ARGUMENTS` (or the conversation). Write everything — narrative and citations — in that language.**
 
 ## Sources
 
@@ -84,7 +84,7 @@ Invoke `/scrapbook:write` with the collected quotes and source URLs. The write s
 ## Rules
 
 - **For global/international topics, use English-language sources only**
-- **Citations must be verbatim** — copy the exact original text, do not paraphrase or translate quotes
+- **Citations must be translated to the user's language** — translate quotes naturally, not machine-translation style
 - **NEVER use WebSearch or WebFetch tools.** All browsing must go through the `open` MCP tool.
 - **NEVER invoke Python, Node, or any programming language via Bash.** Bash is for simple commands (ls, mkdir) only.
 - No duplicates
