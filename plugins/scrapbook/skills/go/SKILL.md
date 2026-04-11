@@ -82,7 +82,7 @@ Invoke `/scrapbook:write` with the output path, theme, date, language, images di
 
 - **For global/international topics, use English-language sources only**
 - Browse curated media sites directly — do NOT use web search APIs
-- **Do NOT write or run programs** (no Python, Node, shell scripts, etc.). Use only the allowed tools.
+- **NEVER invoke Python, Node, or any programming language via Bash.** Bash is for simple commands (ls, mkdir) only. Do not write or execute scripts.
 - No duplicates
 - On error, skip and move on
 - If `$ARGUMENTS` is empty, capture whatever is interesting on major tech curation sites right now

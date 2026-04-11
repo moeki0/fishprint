@@ -5,7 +5,6 @@ user-invocable: true
 allowed-tools:
   - Read
   - Write
-  - Bash(ls *)
 ---
 
 # /scrapbook:write — Generate Markdown digest
