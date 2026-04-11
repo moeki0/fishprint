@@ -1,0 +1,4 @@
+node_modules
+bun.lock
+ocr_input_*.png
+*.traineddata
