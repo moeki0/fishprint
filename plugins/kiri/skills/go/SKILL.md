@@ -34,12 +34,16 @@ allowed-tools:
   "name": "週刊AIニュース",
   "theme": "AI・LLM・機械学習の最新動向",
   "output": "wiki/ai_news_{{date}}.md",
-  "images": "gyazo"
+  "images": "gyazo",
+  "instructions": "解説は技術者向けに書く。Obsidianのwiki link形式を使う。"
 }
 ```
 
 - `images: "gyazo"` → Gyazoにアップロード（キーチェーンにトークンが必要）
 - `images: "local"` → outputと同じディレクトリに画像を保存
+- `instructions` → すべてのフェーズに適用されるカスタム指示
+
+**`./kiri.json`がある場合、`instructions`の内容に必ず従うこと。**
 
 ## フロー
 
