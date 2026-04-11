@@ -33,16 +33,18 @@ If no language code, open without translate: `open(url)`
 
 ### 3. Identify capture targets
 
-Read the DOM structure returned by `open`. Target **individual text elements**:
+Read the DOM structure returned by `open`. **Capture the smallest possible elements.** Each screenshot should contain only a few lines of text — one idea, one quote, one point.
 
-- Single paragraphs (`p`)
-- Individual list items (`li`)
-- Single blockquotes (`blockquote`)
-- Individual headings (`h1`-`h6`)
-- Single code blocks (`pre`, `code`)
-- Individual comments (on HN, Lobsters, Reddit)
+Target individual text elements using **specific CSS selectors**:
 
-**Do NOT capture large containers (`div`, `section`, `article`).** Each capture must be small and focused on 1 topic.
+- Single paragraphs: `p`, `p:nth-of-type(3)`, `article > p:first-of-type`
+- Individual list items: `li`, `ul > li:nth-child(2)`
+- Single blockquotes: `blockquote`
+- Individual headings: `h1`, `h2`, `h3`
+- Single code blocks: `pre`, `code`
+- Individual comments: `.comment`, `.athing` (HN), `.comment__body` (Lobsters)
+
+**NEVER use broad selectors like `div`, `section`, `article`, `main`.** These produce large screenshots that are hard to read. If an element is too big, target its children instead.
 
 ### 4. Capture 魚拓
 

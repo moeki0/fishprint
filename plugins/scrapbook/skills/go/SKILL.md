@@ -78,7 +78,7 @@ For each candidate article, invoke `/scrapbook:capture` with the article URL and
 
 ### Phase 3: Write
 
-Invoke `/scrapbook:write` with the output path, theme, date, language, images directory, and any instructions from scrapbook.json. The write skill assembles the final Markdown digest.
+Invoke `/scrapbook:write` with the output path, theme, date, language, images directory, and any instructions from scrapbook.json. The write skill generates a **text-driven article** where screenshots and prose alternate — text explains the narrative, screenshots serve as evidence.
 
 ## Rules
 
