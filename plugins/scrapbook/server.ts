@@ -14,6 +14,23 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
 
+// --- Config (scrapbook.json) ---
+type Config = { output?: string; images?: "gyazo" | "local"; instructions?: string };
+function loadConfig(): Config {
+  try {
+    const raw = readFileSync("scrapbook.json", "utf-8");
+    return JSON.parse(raw) as Config;
+  } catch { return {}; }
+}
+const config = loadConfig();
+
+function resolveLocalDir(explicit?: string): string | undefined {
+  if (explicit) return explicit;
+  if (config.images === "gyazo") return undefined;
+  // default to local
+  return "./scrapbook_images";
+}
+
 // --- Browser ---
 let browser: Browser | null = null;
 let currentPage: Page | null = null;
@@ -93,7 +110,7 @@ mcp.setRequestHandler(ListToolsRequestSchema, async () => ({
             items: { type: "string" },
             description: "CSS selectors of elements to screenshot",
           },
-          localDir: { type: "string", description: "Local directory to save images. Omit to use Gyazo." },
+          localDir: { type: "string", description: "Local directory to save images. Omit to use scrapbook.json config (default: ./scrapbook_images)." },
         },
         required: ["sections"],
       },
@@ -258,7 +275,7 @@ mcp.setRequestHandler(CallToolRequestSchema, async (req) => {
       }
 
       const selectors = args.selectors as string[];
-      const localDir = args.localDir as string | undefined;
+      const localDir = resolveLocalDir(args.localDir as string | undefined);
 
       // スクショ + 保存を並列
       const results: string[] = [];
@@ -296,7 +313,7 @@ mcp.setRequestHandler(CallToolRequestSchema, async (req) => {
         currentGroup = null;
       }
 
-      let output = args.output as string;
+      let output = (args.output as string) || config.output || "scrapbook_{{date}}.md";
       const now = new Date();
       const date = `${now.getFullYear()}_${String(now.getMonth() + 1).padStart(2, "0")}_${String(now.getDate()).padStart(2, "0")}`;
       output = output.replace("{{date}}", date);
@@ -341,7 +358,7 @@ mcp.setRequestHandler(CallToolRequestSchema, async (req) => {
     case "ocr": {
       const imagePath = args.imagePath as string;
       const translations = args.translations as { text: string; translated: string; bbox: { x0: number; y0: number; x1: number; y1: number } }[] | undefined;
-      const localDir = args.localDir as string | undefined;
+      const localDir = resolveLocalDir(args.localDir as string | undefined);
 
       let imageBuffer: Buffer;
       let tmpFile: string | null = null;
