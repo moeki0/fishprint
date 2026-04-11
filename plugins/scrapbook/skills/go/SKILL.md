@@ -34,6 +34,7 @@ Arguments: `$ARGUMENTS`
 - **Security**: /r/netsec, Krebs on Security
 - **Design**: Designer News, /r/design
 - **Science**: /r/science, Phys.org
+- **Academic / Papers**: arXiv (`arxiv.org/list/{subject}/recent`), Semantic Scholar (`semanticscholar.org`), Google Scholar (`scholar.google.com`), Papers With Code, ACM Digital Library, OpenReview (`openreview.net`)
 - **Programming languages**: respective community forums, Weekly newsletters
 - **Any topic**: Reddit (`old.reddit.com/r/{topic}`) works as a universal curation layer
 - **X/Twitter**: if curated sites link to tweets, follow and capture them (public tweets work without login)
