@@ -1,0 +1,17 @@
+{
+  "name": "kiri",
+  "displayName": "Kiri",
+  "description": "Web content clipper with translated screenshots and OCR for Claude Code",
+  "plugins": [
+    {
+      "name": "kiri",
+      "displayName": "Kiri",
+      "description": "Webコンテンツを切り取り、翻訳し、まとめる。翻訳スクショ・OCR翻訳オーバーレイ・Markdown生成。",
+      "version": "0.1.0",
+      "source": {
+        "source": "github",
+        "repo": "moeki0/kiri"
+      }
+    }
+  ]
+}
