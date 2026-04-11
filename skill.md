@@ -19,6 +19,27 @@ cd ${CLAUDE_SKILL_DIR}
 
 ./kiri.jsonの`theme`に基づいてWebから情報を収集し、背景を調査し、翻訳スクショ付きのMarkdownページを生成する。
 
+## 初回セットアップ
+
+`./kiri.json`が存在しない場合、まずユーザーと対話して設定を作成する：
+
+1. 何をまとめたいか聞く（例：「AIニュース」「量子コンピュータの最新研究」「フロントエンド技術動向」）
+2. 出力先を聞く（例：`wiki/ai_news_{{date}}.md`、`reports/research_{{date}}.md`）
+3. 画像保存方法を聞く（`gyazo` or `local`）
+4. 回答を元に`./kiri.json`を生成して保存
+
+```
+例：
+ユーザー「AIの最新ニュースをまとめたい」
+→ kiri.json:
+{
+  "name": "AIニュース",
+  "theme": "AI・LLM・機械学習の最新動向",
+  "output": "ai_news_{{date}}.md",
+  "images": "local"
+}
+```
+
 ## ./kiri.json
 
 ```json
