@@ -1,9 +1,8 @@
 {
   "name": "scrapbook",
-  "version": "1.4.0",
+  "version": "2.1.0",
   "private": true,
   "bin": {
-    "scrapbook-capture": "./skills/capture/scrapbook-capture.sh",
     "scrapbook-ocr": "./skills/ocr/scrapbook-ocr.sh"
   },
   "scripts": {
