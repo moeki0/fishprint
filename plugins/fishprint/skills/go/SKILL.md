@@ -89,22 +89,30 @@ sectionDir: <sectionDir>          (e.g. /tmp/fishprint_xxx)
 Section number: <N>
 Target language: <user's language>
 Time constraint: <absolute date range e.g. "2026-04-12 only" or "2026-04-06〜2026-04-12"; or "none">
-gyazo-upload script: <absolute path to gyazo-upload.sh, found at ~/.claude/plugins/cache/fishprint/fishprint/*/bin/gyazo-upload.sh>
+Plugin bin dir: <absolute path, found at ~/.claude/plugins/cache/fishprint/fishprint/*/bin>
 
 ## Steps
+
+### 0. Locate binaries
+
+```bash
+PLUGIN_BIN=$(ls -d ~/.claude/plugins/cache/fishprint/fishprint/*/bin 2>/dev/null | head -1)
+AB="$PLUGIN_BIN/agent-browser.sh"
+GYAZO_UPLOAD="$PLUGIN_BIN/gyazo-upload.sh"
+```
 
 ### 1. Open each candidate URL
 
 Run in parallel (separate Bash calls, all at once):
 
 ```bash
-agent-browser --session section_<N> open <url>
+"$AB" --session section_<N> open <url>
 ```
 
 ### 2. Read page content
 
 ```bash
-agent-browser --session section_<N> snapshot
+"$AB" --session section_<N> snapshot
 ```
 
 Identify which article(s) most authoritatively cover the topic. Skip off-topic or duplicate pages.
@@ -132,7 +140,7 @@ For each CSS selector, first validate, then screenshot and upload:
 
 **Validate:**
 ```bash
-agent-browser --session section_<N> eval "(function(){
+"$AB" --session section_<N> eval "(function(){
   const el = document.querySelector('<selector>');
   if (!el) return JSON.stringify({error:'not found'});
   const r = el.getBoundingClientRect();
@@ -147,7 +155,7 @@ If `{"ok":true}`, proceed. If error, pick a narrower selector and retry. Do NOT 
 
 **Screenshot via html2canvas:**
 ```bash
-RESULT=$(agent-browser --session section_<N> eval "new Promise(resolve=>{
+RESULT=$("$AB" --session section_<N> eval "new Promise(resolve=>{
   const el=document.querySelector('<selector>');
   const s=document.createElement('script');
   s.src='https://html2canvas.hertzen.com/dist/html2canvas.min.js';
@@ -215,7 +223,7 @@ Rules:
 ### 8. Clean up
 
 ```bash
-agent-browser --session section_<N> close
+"$AB" --session section_<N> close
 rm -f /tmp/shot_<N>_*.png
 ```
 
