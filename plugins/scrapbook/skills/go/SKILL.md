@@ -20,7 +20,7 @@ Arguments: `$ARGUMENTS`
 2. **Spawn one Task (general-purpose subagent) per topic, in parallel.** Each subagent opens its sources, selects thesis sentences, captures translated screenshots ("魚拓"), and writes a section via `/scrapbook:write`
 3. Concatenate all sections into a single Markdown digest via `assemble`
 
-**Scaling principle:** The main agent only holds the topic list. All heavy context (DOMs, quotes, translations) lives inside subagents. 20〜50 topics per run is achievable.
+**Scaling principle:** The main agent only holds the topic list. All heavy context (DOMs, quotes, translations) lives inside subagents. One wave of ~8 topics per run is the default target.
 
 **Output format: narrative text with translated-screenshot citations (魚拓), all in the user's language.** Each citation is a Gyazo-hosted screenshot of the original element with its text replaced by the translation — preserving the source's layout/typography while being readable in the user's language.
 
@@ -54,7 +54,7 @@ Choose a unique temp path for this run, e.g. `/tmp/scrapbook_<YYYYMMDD_HHMMSS>` 
 
 Use `open(url)` to browse curation sites widely. Read the DOM structure (titles, summaries, comments) to understand what conversations are happening. **Do not open individual articles yet** — that's the subagent's job.
 
-Extract a list of **distinct topics** — each topic is a short description of one discrete news item / discussion / release, paired with 1〜3 candidate source URLs that cover it. Aim for **20〜30 topics**. Deduplicate aggressively: two HN submissions about the same launch = one topic.
+Extract a list of **distinct topics** — each topic is a short description of one discrete news item / discussion / release, paired with 1〜3 candidate source URLs that cover it. **Target: at least 8 topics, up to ~12.** If your first source only yields 3〜4, keep browsing additional sources until you reach 8. Do not proceed to Phase 2 with fewer than 8 topics unless you have genuinely exhausted the relevant sources. Deduplicate aggressively: two HN submissions about the same launch = one topic.
 
 Example topic entries:
 
@@ -67,9 +67,9 @@ Example topic entries:
 
 `close(id)` curation pages before Phase 2 to free browser resources.
 
-### Phase 2: Spawn one subagent per topic, in parallel batches
+### Phase 2: Spawn one subagent per topic, in parallel
 
-For each topic, spawn a **Task (general-purpose subagent)** via the `Task` tool. Subagents run **concurrently** — issue up to **8 Task calls in a single message** for parallelism. Process the full topic list in waves of 8.
+For each topic, spawn a **Task (general-purpose subagent)** via the `Task` tool. Subagents run **concurrently** — with ~8 topics, dispatch **all Tasks in a single message** for maximum parallelism. If the list exceeds ~10, wave them in groups of 8.
 
 **Task prompt template** (self-contained — the subagent does not see this conversation):
 
