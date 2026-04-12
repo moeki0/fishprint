@@ -20,7 +20,7 @@ export function getKeychainToken(service: string, account: string): string | nul
 
 // --- Browser daemon ---
 
-const SOCKET_PATH = "/tmp/scrapbook-browser.sock";
+const SOCKET_PATH = "/tmp/fishprint-browser.sock";
 let _browser: Browser | null = null;
 
 export async function getBrowser(): Promise<Browser> {
@@ -55,12 +55,13 @@ export async function closeBrowser() {
 // --- Gyazo upload ---
 
 export async function uploadToGyazo(imageBuffer: Buffer, title?: string): Promise<string> {
-  const token = getKeychainToken("scrapbook", "gyazo");
+  // "scrapbook" fallback kept for users who set up the keychain under the old plugin name.
+  const token = getKeychainToken("fishprint", "gyazo") || getKeychainToken("scrapbook", "gyazo");
   if (!token) {
     throw new Error(
       "Gyazo token not found in keychain. Set it with:\n" +
-      "  macOS: security add-generic-password -a gyazo -s scrapbook -w YOUR_TOKEN -U\n" +
-      "  Linux: secret-tool store --label=scrapbook service scrapbook key gyazo"
+      "  macOS: security add-generic-password -a gyazo -s fishprint -w YOUR_TOKEN -U\n" +
+      "  Linux: secret-tool store --label=fishprint service fishprint key gyazo"
     );
   }
 

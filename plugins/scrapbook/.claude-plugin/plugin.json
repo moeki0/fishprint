@@ -1,6 +1,0 @@
-{
-  "name": "scrapbook",
-  "description": "Browse the web, capture 魚拓 (original-text screenshots) of key sentences with translations below, and write citation-driven digests",
-  "version": "2.9.0",
-  "keywords": ["news", "hackernews", "screenshot", "archive", "digest", "translation", "魚拓"]
-}

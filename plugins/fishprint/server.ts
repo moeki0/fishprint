@@ -71,7 +71,7 @@ function summarizeDOM(page: Page): Promise<{ structure: string; truncated: boole
 }
 
 // --- MCP Server ---
-const mcp = new Server({ name: "scrapbook", version: "2.9.0" }, { capabilities: { tools: {} } });
+const mcp = new Server({ name: "fishprint", version: "2.10.0" }, { capabilities: { tools: {} } });
 
 mcp.setRequestHandler(ListToolsRequestSchema, async () => ({
   tools: [
@@ -119,9 +119,9 @@ mcp.setRequestHandler(ListToolsRequestSchema, async () => ({
       inputSchema: {
         type: "object",
         properties: {
-          sectionDir: { type: "string", description: "Directory containing section_*.md files (caller-chosen, e.g. /tmp/scrapbook_<uuid>)" },
-          output: { type: "string", description: "Output file path (e.g. ./scrapbook_2026_04_12.md)" },
-          title: { type: "string", description: "Top-level heading text (e.g. 'Scrapbook: AI agents — 2026-04-12')" },
+          sectionDir: { type: "string", description: "Directory containing section_*.md files (caller-chosen, e.g. /tmp/fishprint_<uuid>)" },
+          output: { type: "string", description: "Output file path (e.g. ./fishprint_2026_04_12.md)" },
+          title: { type: "string", description: "Top-level heading text (e.g. 'Fishprint: AI agents — 2026-04-12')" },
         },
         required: ["sectionDir", "output", "title"],
       },

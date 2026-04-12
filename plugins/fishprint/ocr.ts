@@ -12,7 +12,7 @@ const imagePath = process.argv[2];
 const translationsPath = process.argv[3];
 
 if (!imagePath) {
-  console.error("Usage: scrapbook-ocr.sh <image_path_or_url> [translations.json]");
+  console.error("Usage: fishprint-ocr <image_path_or_url> [translations.json]");
   process.exit(1);
 }
 

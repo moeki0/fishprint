@@ -1,17 +1,17 @@
 {
-  "name": "scrapbook",
-  "description": "Browse the web, collect verbatim quotes, and write citation-driven digests",
+  "name": "fishprint",
+  "description": "Fishprint — primary-source scrapbook for the web. Browse, 魚拓 key sentences, write a citation-driven digest.",
   "owner": {
     "name": "moeki",
     "email": "hi@moeki.org"
   },
   "plugins": [
     {
-      "name": "scrapbook",
-      "displayName": "Scrapbook",
-      "description": "Browse the web, collect verbatim quotes, and write citation-driven digests",
-      "version": "2.3.1",
-      "source": "./plugins/scrapbook"
+      "name": "fishprint",
+      "displayName": "Fishprint",
+      "description": "Primary-source scrapbook for the web — 魚拓 (original-text screenshots) + translations under each, with citation-driven topic digests.",
+      "version": "2.10.0",
+      "source": "./plugins/fishprint"
     }
   ]
 }

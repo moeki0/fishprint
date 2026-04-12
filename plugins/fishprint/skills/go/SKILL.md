@@ -1,6 +1,6 @@
 ---
 name: go
-description: Browse the web, collect quotes, and write a text-driven digest with citations. Use when asked for "news", "what's happening", "scrapbook", or to research a topic.
+description: Browse the web, 魚拓 key sentences, and write a citation-driven topic digest. Use when asked for "news", "what's happening", "fishprint", "scrapbook", or to research a topic.
 user-invocable: true
 allowed-tools:
   - Read
@@ -8,14 +8,14 @@ allowed-tools:
   - Task
   - WebSearch
   - WebFetch
-  - mcp__scrapbook__*
+  - mcp__fishprint__*
 ---
 
-# Scrapbook — Web Research & Citation Digest
+# Fishprint — Primary-source web research with 魚拓
 
 Arguments: `$ARGUMENTS`
 
-## What Scrapbook does
+## What Fishprint does
 
 1. Browse curation sites widely and **extract a list of distinct topics** — each topic may cite 1〜3 source URLs
 2. **Spawn one Task (general-purpose subagent) per topic, in parallel.** Each subagent opens its sources, selects thesis sentences, captures translated screenshots ("魚拓"), and writes its own `section_N.md` directly via `Write`
@@ -49,7 +49,7 @@ Arguments: `$ARGUMENTS`
 
 ### Phase 0: Pick a sectionDir
 
-Choose a unique temp path for this run, e.g. `/tmp/scrapbook_<YYYYMMDD_HHMMSS>` or `/tmp/scrapbook_<random>`. **Remember it.** Pass it to every subagent and to `assemble`. No explicit setup needed — subagents create the dir when they save `section_1.md`.
+Choose a unique temp path for this run, e.g. `/tmp/fishprint_<YYYYMMDD_HHMMSS>` or `/tmp/fishprint_<random>`. **Remember it.** Pass it to every subagent and to `assemble`. No explicit setup needed — subagents create the dir when they save `section_1.md`.
 
 ### Phase 1: Browse curation sites & extract topic list
 
@@ -75,16 +75,16 @@ For each topic, spawn a **Task (general-purpose subagent)** via the `Task` tool.
 **Task prompt template** (self-contained — the subagent does not see this conversation):
 
 ```
-You are writing one section of a scrapbook digest about a specific topic.
+You are writing one section of a Fishprint digest (a primary-source scrapbook for the web) about a specific topic.
 
 Topic: <topic description>
 Candidate source URLs: <url list>
-sectionDir: <sectionDir>          (e.g. /tmp/scrapbook_xxx)
+sectionDir: <sectionDir>          (e.g. /tmp/fishprint_xxx)
 Section number: <N>
 Target language: <user's language>
 
 Steps:
-1. Call mcp__scrapbook__open on each candidate URL (in parallel) to read its content.
+1. Call mcp__fishprint__open on each candidate URL (in parallel) to read its content.
 2. Read the full content of each. Identify which article(s) most authoritatively cover the topic — you may use 1 or several. Skip any that turn out to be off-topic or duplicates.
 3. From each chosen article, pick 1〜3 *sentences* that carry the thesis — claims a reader would quote in a discussion. Skip headings, navigation, boilerplate, author bios, date stamps. Prefer:
    - The one-sentence claim that best summarizes the piece's argument
@@ -99,7 +99,7 @@ Steps:
    - FORBIDDEN class patterns: anything that names a container — `entry-content`, `post-content`, `article-body`, `et_pb_*`, `prose`, `markdown-body`, `content`, `main`, etc.
    - If the article is on a platform (Medium, Substack, WordPress, Ghost, Notion), use `nth-of-type` or attribute selectors on `p` — e.g. `article p:nth-of-type(4)`, not the wrapping class.
    - When unsure between a narrow and a wide selector, pick the narrow one. capture rejects elements >600px tall or >1200 chars; better to get a clean rejection and retry than to ship a wall-of-text 魚拓.
-4. Call mcp__scrapbook__capture({ id, selectors: [selector1, selector2, ...] }) for each page. The server screenshots the ORIGINAL (untranslated) element and uploads to Gyazo. **Response shape**: `{ captured: [{selector, url}], rejected: [{selector, reason}] }`. If any selector is rejected (too tall, too much text, or not found), pick a narrower alternative and call capture again for just those selectors. Do not fall back to a wider selector — go narrower.
+4. Call mcp__fishprint__capture({ id, selectors: [selector1, selector2, ...] }) for each page. The server screenshots the ORIGINAL (untranslated) element and uploads to Gyazo. **Response shape**: `{ captured: [{selector, url}], rejected: [{selector, reason}] }`. If any selector is rejected (too tall, too much text, or not found), pick a narrower alternative and call capture again for just those selectors. Do not fall back to a wider selector — go narrower.
 5. For each captured quote, prepare a natural translation into <user's language> (not machine-translation style). The translation goes into the Markdown under the image, not into the image itself.
 6. Compose the Markdown section yourself and save it directly with the `Write` tool to `<sectionDir>/section_<N>.md`.
 
@@ -138,13 +138,13 @@ Steps:
    - You may additionally embed important article figures (graphs, benchmark tables, architecture diagrams) using their original URLs: `![description](https://example.com/figure.png)`. Only include figures that add information text cannot convey.
    - ALWAYS end the section with link(s) to the original source(s). Mandatory.
 
-7. Call mcp__scrapbook__close on every page you opened.
+7. Call mcp__fishprint__close on every page you opened.
 8. Report back a single line: "section <N> written" (or "section <N> skipped: <reason>").
 
 Constraints:
 - Everything in <user's language>.
 - Do NOT call assemble; the coordinator does that.
-- Any URL you will *quote* (i.e. pass to capture) MUST be opened via mcp__scrapbook__open — capture only works on open pages. You may additionally use WebSearch / WebFetch for discovery, cross-referencing, or quick context checks where no screenshot is needed.
+- Any URL you will *quote* (i.e. pass to capture) MUST be opened via mcp__fishprint__open — capture only works on open pages. You may additionally use WebSearch / WebFetch for discovery, cross-referencing, or quick context checks where no screenshot is needed.
 - On error for a URL, skip it and continue with the remaining URLs. If no URL works, report "skipped".
 ```
 
@@ -155,12 +155,12 @@ Constraints:
 Call the `assemble` MCP tool:
 
 ```
-assemble({ sectionDir: "/tmp/scrapbook_...", output: "<ABSOLUTE_PATH>/scrapbook_YYYY_MM_DD.md", title: "Scrapbook: {theme} — {date}" })
+assemble({ sectionDir: "/tmp/fishprint_...", output: "<ABSOLUTE_PATH>/fishprint_YYYY_MM_DD.md", title: "Fishprint: {theme} — {date}" })
 ```
 
 This concatenates all section files in `sectionDir` (in numeric order), prepends the title as an `#` heading, saves to the output path, and cleans up `sectionDir`.
 
-**`output` MUST be an absolute path.** The MCP server's working directory is its own install location, not the user's working directory — a relative path like `./scrapbook.md` will land in the plugin cache. Build the absolute path from the user's current working directory (the one shown at the top of your system context, e.g. `/Users/alice/wiki/scrapbook_YYYY_MM_DD.md`).
+**`output` MUST be an absolute path.** The MCP server's working directory is its own install location, not the user's working directory — a relative path like `./fishprint.md` will land in the plugin cache. Build the absolute path from the user's current working directory (the one shown at the top of your system context, e.g. `/Users/alice/wiki/fishprint_YYYY_MM_DD.md`).
 
 **Do not end the session without calling assemble.**
 

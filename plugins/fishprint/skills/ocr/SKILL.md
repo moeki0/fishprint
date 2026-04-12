@@ -5,14 +5,14 @@ user-invocable: true
 allowed-tools:
   - Read
   - Write
-  - Bash(scrapbook-ocr *)
+  - Bash(fishprint-ocr *)
   - Bash(mkdir *)
   - Bash(ls *)
   - Bash(head *)
   - Write(/tmp/*)
 ---
 
-# /scrapbook:ocr — OCR translation overlay
+# /fishprint:ocr — OCR translation overlay
 
 Arguments: `$ARGUMENTS`
 
@@ -23,7 +23,7 @@ Extract text from images via tesseract OCR and overlay translations on a light g
 ### Step 1: OCR
 
 ```bash
-scrapbook-ocr "<image_path_or_url>"
+fishprint-ocr "<image_path_or_url>"
 ```
 
 → Returns JSON with text lines and bounding boxes.
@@ -41,8 +41,7 @@ Based on OCR results:
 ### Step 3: Apply overlay
 
 ```bash
-scrapbook-ocr "<image_path_or_url>" /tmp/translations.json
-scrapbook-ocr "<image_path_or_url>" /tmp/translations.json --local <dir>
+fishprint-ocr "<image_path_or_url>" /tmp/translations.json
 ```
 
 → Fills original text regions with light gray and draws translated text on top.
