@@ -4,7 +4,7 @@ import { fileURLToPath } from "url";
 import { randomUUID } from "crypto";
 import { execSync } from "child_process";
 import sharp from "sharp";
-import { saveImage, parseLocalDir, closeBrowser } from "./lib";
+import { uploadToGyazo } from "./lib";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -12,11 +12,9 @@ const imagePath = process.argv[2];
 const translationsPath = process.argv[3];
 
 if (!imagePath) {
-  console.error("Usage: scrapbook-ocr.sh <image_path_or_url> [translations.json] [--local <dir>]");
+  console.error("Usage: scrapbook-ocr.sh <image_path_or_url> [translations.json]");
   process.exit(1);
 }
-
-const localDir = parseLocalDir();
 
 // 画像読み込み
 let imageBuffer: Buffer;
@@ -66,7 +64,7 @@ const lines = Array.from(lineMap.values()).map(words => {
   return { text, bbox: { x0, y0, x1, y1 } };
 });
 
-if (!translationsPath || translationsPath === "--local") {
+if (!translationsPath) {
   console.log(JSON.stringify({ lines }, null, 2));
 } else {
   const translations: { text: string; translated: string; bbox: { x0: number; y0: number; x1: number; y1: number } }[] =
@@ -87,7 +85,7 @@ if (!translationsPath || translationsPath === "--local") {
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">${rects}</svg>`;
   const overlaid = await sharp(imageBuffer).composite([{ input: Buffer.from(svg), top: 0, left: 0 }]).png().toBuffer();
-  const saved = await saveImage(Buffer.from(overlaid), imagePath, localDir);
+  const saved = await uploadToGyazo(Buffer.from(overlaid), imagePath);
   console.log(JSON.stringify({ image: saved }, null, 2));
 }
 

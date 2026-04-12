@@ -6,6 +6,7 @@ import { chromium, type Browser, type Page } from "playwright";
 import { readFileSync, writeFileSync, readdirSync, mkdirSync, existsSync, unlinkSync, rmdirSync } from "fs";
 import { join, dirname } from "path";
 import { randomUUID } from "crypto";
+import { uploadToGyazoParallel } from "./lib";
 
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
 
@@ -71,7 +72,7 @@ function summarizeDOM(page: Page): Promise<{ structure: string; truncated: boole
 }
 
 // --- MCP Server ---
-const mcp = new Server({ name: "scrapbook", version: "2.1.0" }, { capabilities: { tools: {} } });
+const mcp = new Server({ name: "scrapbook", version: "2.4.0" }, { capabilities: { tools: {} } });
 
 mcp.setRequestHandler(ListToolsRequestSchema, async () => ({
   tools: [
@@ -84,6 +85,29 @@ mcp.setRequestHandler(ListToolsRequestSchema, async () => ({
           url: { type: "string", description: "URL to open" },
         },
         required: ["url"],
+      },
+    },
+    {
+      name: "capture",
+      description: "Translate selected elements on an open page and screenshot each, uploading to Gyazo. Replaces each element's textContent with the provided translation BEFORE screenshotting, so the image shows the original layout/typography with translated text. Returns an array of { selector, url } — embed url in Markdown as ![](url) in place of blockquote citations.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          id: { type: "string", description: "Page ID returned by open" },
+          sections: {
+            type: "array",
+            description: "Elements to translate and capture",
+            items: {
+              type: "object",
+              properties: {
+                selector: { type: "string", description: "CSS selector of the element to capture" },
+                translated: { type: "string", description: "Translated text to inject into the element's textContent" },
+              },
+              required: ["selector", "translated"],
+            },
+          },
+        },
+        required: ["id", "sections"],
       },
     },
     {
@@ -155,6 +179,44 @@ mcp.setRequestHandler(CallToolRequestSchema, async (req) => {
           type: "text",
           text: `Page ${id}: ${url}${result.truncated ? " (truncated)" : ""}\n\nDOM structure:\n${result.structure}`,
         }],
+      };
+    }
+
+    case "capture": {
+      const id = args.id as string;
+      const sections = args.sections as Array<{ selector: string; translated: string }>;
+      const entry = pages.get(id);
+      if (!entry) {
+        return { content: [{ type: "text", text: `Page ${id} not found` }] };
+      }
+      const page = entry.page;
+
+      await page.evaluate((secs) => {
+        for (const sec of secs) {
+          try {
+            const el = document.querySelector(sec.selector);
+            if (el && sec.translated) el.textContent = sec.translated;
+          } catch {}
+        }
+      }, sections);
+
+      await page.waitForTimeout(300);
+
+      const shots: { buf: Buffer; title: string; selector: string }[] = [];
+      for (const sec of sections) {
+        try {
+          const el = await page.$(sec.selector);
+          if (!el) continue;
+          const buf = await el.screenshot();
+          shots.push({ buf: Buffer.from(buf), title: entry.url, selector: sec.selector });
+        } catch {}
+      }
+
+      const urls = await uploadToGyazoParallel(shots.map(s => ({ buf: s.buf, title: s.title })));
+      const results = shots.map((s, i) => ({ selector: s.selector, url: urls[i] }));
+
+      return {
+        content: [{ type: "text", text: JSON.stringify(results) }],
       };
     }
 

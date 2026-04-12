@@ -16,10 +16,10 @@ Arguments: `$ARGUMENTS`
 ## What Scrapbook does
 
 1. Browse the web for a given theme/topic
-2. For each article, read it and invoke `/scrapbook:write` to generate a section
+2. For each article, read it, capture translated screenshots of key quotes ("魚拓"), and invoke `/scrapbook:write` to generate a section that embeds those images in place of blockquote citations
 3. Concatenate all sections into a single Markdown digest
 
-**Output format: narrative text with blockquote citations, all in the user's language.** No screenshots, no images (except important figures from articles).
+**Output format: narrative text with translated-screenshot citations (魚拓), all in the user's language.** Each citation is a Gyazo-hosted screenshot of the original element with its text replaced by the translation — preserving the source's layout/typography while being readable in the user's language.
 
 **Language: detect the language the user used in `$ARGUMENTS` (or the conversation). Write everything in that language.**
 
@@ -63,16 +63,17 @@ Use `open(url)` to browse sites. Read the DOM structure to find interesting post
 
 Collect **as many candidate article URLs as possible** (20+).
 
-### Phase 2: Read articles & generate sections
+### Phase 2: Read articles, capture 魚拓, generate sections
 
-**Run everything in parallel.** Open pages, read content, and generate sections concurrently:
+**Run everything in parallel.** Open pages, read content, capture translated screenshots, and generate sections concurrently:
 
 1. Call `open(url)` for up to 4 articles in parallel — each returns a page ID
-2. As each page loads, read its content and follow outbound links to primary sources
-3. Invoke `/scrapbook:write` for each article in parallel, passing `sectionDir` and a unique section number — the write skill saves the section to `{sectionDir}/section_N.md`
-4. `close(id)` to free pages when done
+2. As each page loads, read its DOM structure and identify 1〜3 quote-worthy elements per article (specific `p`, `blockquote`, `li`, `h2` selectors). Prepare a natural translation for each into the user's language.
+3. Call `capture({ id, sections: [{ selector, translated }, ...] })` for each page — returns an array of `{ selector, url }`. The Gyazo URL points to a screenshot of that element with its text replaced by the translation. Capture calls run in parallel with other pages.
+4. Invoke `/scrapbook:write` for each article in parallel, passing the captured image URLs, `sectionDir`, and a unique section number — the write skill saves the section to `{sectionDir}/section_N.md`.
+5. `close(id)` to free pages when done.
 
-**Maximize concurrency.** open calls, write calls — all can run in parallel since each article is independent.
+**Maximize concurrency.** open / capture / write calls all run in parallel since each article is independent.
 
 ### Phase 3: Assemble final digest — MANDATORY, DO NOT SKIP
 
