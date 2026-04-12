@@ -1,6 +1,6 @@
 # Fishprint
 
-> Primary-source scrapbook for the web.
+> Primary-source 魚拓 archive for the web.
 
 A Claude Code plugin that browses curated media (Hacker News, Lobsters, Reddit, arXiv, …), captures 魚拓 (screenshots) of the key sentences it quotes, and writes a citation-driven topic digest in Markdown.
 
@@ -49,7 +49,7 @@ security add-generic-password -a gyazo -s fishprint -w YOUR_GYAZO_TOKEN -U
 secret-tool store --label=fishprint service fishprint key gyazo
 ```
 
-Get a token at [gyazo.com/oauth/applications](https://gyazo.com/oauth/applications). A `scrapbook` keychain entry also works as a fallback for users who set up under the old plugin name.
+Get a token at [gyazo.com/oauth/applications](https://gyazo.com/oauth/applications).
 
 ## Usage
 

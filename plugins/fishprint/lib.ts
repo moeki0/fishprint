@@ -55,8 +55,7 @@ export async function closeBrowser() {
 // --- Gyazo upload ---
 
 export async function uploadToGyazo(imageBuffer: Buffer, title?: string): Promise<string> {
-  // "scrapbook" fallback kept for users who set up the keychain under the old plugin name.
-  const token = getKeychainToken("fishprint", "gyazo") || getKeychainToken("scrapbook", "gyazo");
+  const token = getKeychainToken("fishprint", "gyazo");
   if (!token) {
     throw new Error(
       "Gyazo token not found in keychain. Set it with:\n" +

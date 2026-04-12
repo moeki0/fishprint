@@ -1,6 +1,6 @@
 {
   "name": "fishprint",
-  "description": "Fishprint — primary-source scrapbook for the web. Browse, 魚拓 key sentences, write a citation-driven digest.",
+  "description": "Fishprint — primary-source 魚拓 archive for the web. Browse, capture key sentences, write a citation-driven digest.",
   "owner": {
     "name": "moeki",
     "email": "hi@moeki.org"
@@ -9,7 +9,7 @@
     {
       "name": "fishprint",
       "displayName": "Fishprint",
-      "description": "Primary-source scrapbook for the web — 魚拓 (original-text screenshots) + translations under each, with citation-driven topic digests.",
+      "description": "Primary-source 魚拓 archive for the web — original-text screenshots + translations under each, with citation-driven topic digests.",
       "version": "2.11.0",
       "source": "./plugins/fishprint"
     }

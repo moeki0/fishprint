@@ -1,6 +1,6 @@
 ---
 name: go
-description: Browse the web, 魚拓 key sentences, and write a citation-driven topic digest. Use when asked for "news", "what's happening", "fishprint", "scrapbook", or to research a topic.
+description: Browse the web, 魚拓 key sentences, and write a citation-driven topic digest. Use when asked for "news", "what's happening", "fishprint", or to research a topic.
 user-invocable: true
 allowed-tools:
   - Read
@@ -51,9 +51,21 @@ Arguments: `$ARGUMENTS`
 
 Choose a unique temp path for this run, e.g. `/tmp/fishprint_<YYYYMMDD_HHMMSS>` or `/tmp/fishprint_<random>`. **Remember it.** Pass it to every subagent and to `assemble`. No explicit setup needed — subagents create the dir when they save `section_1.md`.
 
+### Phase 0.5: Resolve time constraints (if any)
+
+If `$ARGUMENTS` contains a temporal reference ("今日", "今週", "today", "this week", "this month", a specific date, etc.), **immediately convert it to an absolute date range** before doing anything else. Today's date is provided in your system context. Examples:
+
+- "今日" / "today" → `2026-04-12` only
+- "今週" / "this week" → `2026-04-06〜2026-04-12` (Mon–today)
+- "今月" / "this month" → `2026-04-01〜2026-04-12`
+
+**This range is a hard filter.** Carry it through all phases: only select topics published within the window, and pass it explicitly to every subagent so they can reject off-window articles.
+
 ### Phase 1: Browse curation sites & extract topic list
 
 Use `open(url)` to browse curation sites widely. Read the DOM structure (titles, summaries, comments) to understand what conversations are happening. **Do not open individual articles yet** — that's the subagent's job.
+
+**If a time constraint was resolved in Phase 0.5:** only include candidates whose publish date falls within that range. Discard anything outside it, even if it seems interesting.
 
 **Keep a running log of the curation pages you visited** (name + URL). You will include this in the digest preamble so the reader can see *what was surveyed* — anti-FOMO by showing the work.
 
@@ -86,13 +98,14 @@ For each topic, spawn a **Task (general-purpose subagent)** via the `Task` tool.
 **Task prompt template** (self-contained — the subagent does not see this conversation):
 
 ```
-You are writing one section of a Fishprint digest (a primary-source scrapbook for the web) about a specific topic.
+You are writing one section of a Fishprint digest (a primary-source 魚拓 archive for the web) about a specific topic.
 
 Topic: <topic description>
 Candidate source URLs: <url list>
 sectionDir: <sectionDir>          (e.g. /tmp/fishprint_xxx)
 Section number: <N>
 Target language: <user's language>
+Time constraint: <absolute date range if specified, e.g. "2026-04-12 only" or "2026-04-06〜2026-04-12"; or "none">
 
 Steps:
 1. Call mcp__fishprint__open on each candidate URL (in parallel) to read its content.
@@ -146,7 +159,7 @@ Steps:
    - Narrative text drives the flow; 魚拓 + translation pairs are evidence. NEVER stack two pairs back-to-back without narrative between them.
    - Use every image URL returned by `capture`. Each MUST be followed immediately by a `>` blockquote containing the translation of that quote.
    - The image `alt` text should briefly describe the original (e.g. the first few words of the original language), NOT the translation — the translation lives in the blockquote below.
-   - You may additionally embed important article figures (graphs, benchmark tables, architecture diagrams) using their original URLs: `![description](https://example.com/figure.png)`. Only include figures that add information text cannot convey.
+   - **REQUIRED — visually central images:** If the article has a hero image that *is* the subject of the story (a cat photo for cat news, a product shot, a screenshot of a new UI, a photo of the person interviewed), you MUST embed it using its original URL: `![description](https://example.com/image.jpg)`. Do not omit the defining visual of a visual story. Also embed graphs, benchmark tables, and architecture diagrams when they convey information text alone cannot.
    - ALWAYS end the section with link(s) to the original source(s). Mandatory.
 
 7. Call mcp__fishprint__close on every page you opened.
@@ -157,6 +170,7 @@ Constraints:
 - Do NOT call assemble; the coordinator does that.
 - Any URL you will *quote* (i.e. pass to capture) MUST be opened via mcp__fishprint__open — capture only works on open pages. You may additionally use WebSearch / WebFetch for discovery, cross-referencing, or quick context checks where no screenshot is needed.
 - On error for a URL, skip it and continue with the remaining URLs. If no URL works, report "skipped".
+- **If Time constraint is not "none":** check the publish date of each article before using it. If the date is outside the specified range, skip the article entirely (do not quote from it, do not include it in sources). If all candidate URLs fall outside the range, report "section <N> skipped: no content within time constraint".
 ```
 
 **Wave control.** If the topic list exceeds ~10, issue Tasks in groups of 8 per message. Wait for each wave to return before dispatching the next. Assign section numbers sequentially across all waves (1〜N). If a subagent reports "skipped", leave that section number as a gap — `assemble` will skip missing files.
@@ -212,6 +226,8 @@ This concatenates all section files in `sectionDir` (in numeric order), prepends
 - **Citations must be translated to the user's language** — translate quotes naturally, not machine-translation style
 - **Prefer `open` for anything you will quote from** — capture requires a page opened via `open` to produce 魚拓. Use `WebSearch` / `WebFetch` freely for discovery, quick relevance checks, or to enrich context where a screenshot is not needed.
 - **NEVER invoke Python, Node, or any programming language via Bash.** Bash is for simple commands (ls, mkdir) only.
+- **Visually central images are mandatory.** If a story's subject is visual (an animal, a product, a UI, a person), the key image MUST appear in the section. Do not describe an image without showing it.
+- **Time constraints are hard filters.** If `$ARGUMENTS` includes any temporal reference, convert to an absolute date range in Phase 0.5 and enforce it in every phase. Never include content outside the window.
 - No duplicates
 - On error, skip and move on
 - If `$ARGUMENTS` is empty, cover whatever is interesting on major tech curation sites right now
