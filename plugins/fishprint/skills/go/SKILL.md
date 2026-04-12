@@ -182,12 +182,17 @@ Call the `assemble` MCP tool with `preamble` and `appendix`:
 ```
 assemble({
   sectionDir: "/tmp/fishprint_...",
-  output: "<ABSOLUTE_PATH>/fishprint_YYYY_MM_DD.md",
-  title: "Fishprint: {theme} — {date}",
+  output: "<ABSOLUTE_PATH>/<filename>",
   preamble: "<see below>",
   appendix: "<see below>"
 })
 ```
+
+**Filename rules** — derive from the topic and date, in the user's language:
+- Use the theme as the base: `AIエージェント_2026-04-12.md`, `cat_news_2026-04-12.md`, `Rust_async_2026-04-12.md`
+- Sanitize: replace spaces with `_`, strip characters illegal on common filesystems (`/ \ : * ? " < > |`)
+- If `$ARGUMENTS` is empty (no theme), use `fishprint_YYYY-MM-DD.md` as fallback
+- Do **not** add a `title` — no heading appears inside the file
 
 **Preamble** — write it in the user's language. Required. Include:
 
@@ -214,7 +219,7 @@ assemble({
 - [Reddit thread about IDE preferences](https://old.reddit.com/...) — opinion, no news
 ```
 
-This concatenates all section files in `sectionDir` (in numeric order), prepends the title + preamble, appends the appendix, saves to the output path, and cleans up `sectionDir`.
+This concatenates all section files in `sectionDir` (in numeric order), prepends the preamble, appends the appendix, saves to the output path, and cleans up `sectionDir`.
 
 **`output` MUST be an absolute path.** The MCP server's working directory is its own install location, not the user's working directory — a relative path like `./fishprint.md` will land in the plugin cache. Build the absolute path from the user's current working directory (the one shown at the top of your system context, e.g. `/Users/alice/wiki/fishprint_YYYY_MM_DD.md`).
 

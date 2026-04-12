@@ -125,7 +125,7 @@ mcp.setRequestHandler(ListToolsRequestSchema, async () => ({
           preamble: { type: "string", description: "Optional Markdown inserted between the title and the first section — used for scope framing and the list of sources surveyed" },
           appendix: { type: "string", description: "Optional Markdown appended after the last section — used for 'also seen but not selected' candidate topics" },
         },
-        required: ["sectionDir", "output", "title"],
+        required: ["sectionDir", "output"],
       },
     },
   ],
@@ -236,7 +236,7 @@ mcp.setRequestHandler(CallToolRequestSchema, async (req) => {
     case "assemble": {
       const sectionDir = args.sectionDir as string;
       const output = args.output as string;
-      const title = args.title as string;
+      const title = (args.title as string | undefined)?.trim();
       const preamble = (args.preamble as string | undefined)?.trim();
       const appendix = (args.appendix as string | undefined)?.trim();
 
@@ -257,7 +257,8 @@ mcp.setRequestHandler(CallToolRequestSchema, async (req) => {
       }
 
       const sections = files.map(f => readFileSync(join(sectionDir, f), "utf-8").trim());
-      const parts: string[] = [`# ${title}`];
+      const parts: string[] = [];
+      if (title) parts.push(`# ${title}`);
       if (preamble) parts.push(preamble);
       parts.push(sections.join("\n\n---\n\n"));
       if (appendix) parts.push(appendix);
