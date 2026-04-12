@@ -5,9 +5,9 @@ user-invocable: true
 allowed-tools:
   - Read
   - Write
+  - Bash
   - Task
   - WebSearch
-  - WebFetch
 ---
 
 # Fishprint — Primary-source web research with 魚拓
@@ -42,13 +42,20 @@ Arguments: `$ARGUMENTS`
 
 **For global/international topics, use English-language sources only.** Only use non-English sources when the topic is specifically regional (e.g. Japanese domestic policy, local events).
 
-**Finding sources:** Use WebSearch or WebFetch with DuckDuckGo (`https://duckduckgo.com/?q=QUERY`) to discover good pages for any topic.
+**Finding sources:** Use WebSearch or open DuckDuckGo with agent-browser (`"$AB" --session phase1 open "https://duckduckgo.com/?q=QUERY"`) to discover good pages for any topic.
 
 ## Flow
 
-### Phase 0: Pick a sectionDir
+### Phase 0: Setup
 
 Choose a unique temp path, e.g. `/tmp/fishprint_<YYYYMMDD_HHMMSS>`. **Remember it.** Pass it to every subagent. No explicit setup needed — subagents create the dir when they write their section file.
+
+Locate the plugin bin dir once and reuse throughout:
+
+```bash
+PLUGIN_BIN=$(ls -d ~/.claude/plugins/cache/fishprint/fishprint/*/bin 2>/dev/null | head -1)
+AB="$PLUGIN_BIN/agent-browser.sh"
+```
 
 ### Phase 0.5: Resolve time constraints (if any)
 
@@ -62,7 +69,22 @@ If `$ARGUMENTS` contains a temporal reference ("今日", "今週", "today", "thi
 
 ### Phase 1: Browse curation sites & extract topic list
 
-Use WebFetch to browse curation sites widely. Read the content to understand what conversations are happening. **Do not open individual articles yet** — that's the subagent's job.
+Use agent-browser to open curation sites and read their content. Open multiple pages in parallel, snapshot each, then close before Phase 2.
+
+```bash
+# Open pages in parallel (run all at once)
+"$AB" --session phase1 open https://news.ycombinator.com/ &
+"$AB" --session phase1 open https://lobste.rs/ &
+wait
+
+# Read content
+"$AB" --session phase1 snapshot
+
+# Close when done with Phase 1
+"$AB" --session phase1 close
+```
+
+**Do not open individual articles yet** — that's the subagent's job.
 
 **If a time constraint was resolved in Phase 0.5:** only include candidates whose publish date falls within that range. Discard anything outside it, even if it seems interesting.
 
@@ -234,7 +256,7 @@ Reply with a single line: `section <N> written` (or `section <N> skipped: <reaso
 ## Constraints
 
 - Everything in <user's language>.
-- Use WebSearch / WebFetch freely for discovery, quick relevance checks, or context where no screenshot is needed.
+- Use WebSearch freely for discovery and quick relevance checks.
 - On error for a URL, skip it and continue. If no URL works, report "skipped".
 - **If Time constraint is not "none":** check the article's publish date. If outside the range, skip that article entirely. If all candidates are outside the range, report "section <N> skipped: no content within time constraint".
 ```
