@@ -256,6 +256,7 @@ Reply with a single line: `section <N> written` (or `section <N> skipped: <reaso
 ## Constraints
 
 - Everything in <user's language>.
+- **NEVER use `mcp__claude-in-chrome__*` tools.** Use only `agent-browser` CLI via Bash (`"$AB" ...`).
 - Use WebSearch freely for discovery and quick relevance checks.
 - On error for a URL, skip it and continue. If no URL works, report "skipped".
 - **If Time constraint is not "none":** check the article's publish date. If outside the range, skip that article entirely. If all candidates are outside the range, report "section <N> skipped: no content within time constraint".
@@ -303,6 +304,7 @@ rm -f /tmp/fishprint_preamble.md /tmp/fishprint_appendix.md
 
 ## Rules
 
+- **NEVER use `mcp__claude-in-chrome__*` tools.** All browser automation goes through `agent-browser` CLI via Bash. The claude-in-chrome MCP is a different tool and must not be used here.
 - **For global/international topics, use English-language sources only**
 - **Translate quotes naturally** into the user's language — not machine-translation style
 - **Visually central images are mandatory.** If a story's subject is visual (an animal, a product, a UI, a person), the key image MUST appear in the section.
