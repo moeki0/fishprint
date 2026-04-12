@@ -51,20 +51,13 @@ Arguments: `$ARGUMENTS`
 
 **For global/international topics, use English-language sources only.** Only use non-English sources when the topic is specifically regional (e.g. Japanese domestic policy, local events).
 
-**Finding sources:** Use WebSearch or open DuckDuckGo with agent-browser (`"$AB" --session phase1 open "https://duckduckgo.com/?q=QUERY"`) to discover good pages for any topic.
+**Finding sources:** Use WebSearch or open DuckDuckGo with agent-browser (`agent-browser --session phase1 open "https://duckduckgo.com/?q=QUERY"`) to discover good pages for any topic.
 
 ## Flow
 
 ### Phase 0: Setup
 
 Choose a unique temp path, e.g. `/tmp/fishprint_<YYYYMMDD_HHMMSS>`. **Remember it.** Pass it to every subagent. No explicit setup needed — subagents create the dir when they write their section file.
-
-Locate the plugin bin dir once and reuse throughout:
-
-```bash
-PLUGIN_BIN=$(ls -d ~/.claude/plugins/cache/fishprint/fishprint/*/bin 2>/dev/null | head -1)
-AB="$PLUGIN_BIN/agent-browser.sh"
-```
 
 ### Phase 0.5: Resolve time constraints (if any)
 
@@ -82,15 +75,15 @@ Use agent-browser to open curation sites and read their content. Open multiple p
 
 ```bash
 # Open pages in parallel (run all at once)
-"$AB" --session phase1 open https://news.ycombinator.com/ &
-"$AB" --session phase1 open https://lobste.rs/ &
+agent-browser --session phase1 open https://news.ycombinator.com/ &
+agent-browser --session phase1 open https://lobste.rs/ &
 wait
 
 # Read content
-"$AB" --session phase1 snapshot
+agent-browser --session phase1 snapshot
 
 # Close when done with Phase 1
-"$AB" --session phase1 close
+agent-browser --session phase1 close
 ```
 
 **Do not open individual articles yet** — that's the subagent's job.
@@ -120,16 +113,14 @@ sectionDir: <sectionDir>          (e.g. /tmp/fishprint_xxx)
 Section number: <N>
 Target language: <user's language>
 Time constraint: <absolute date range e.g. "2026-04-12 only" or "2026-04-06〜2026-04-12"; or "none">
-Plugin bin dir: <absolute path, found at ~/.claude/plugins/cache/fishprint/fishprint/*/bin>
+gyazo-upload script: <absolute path, found at ~/.claude/plugins/cache/fishprint/fishprint/*/bin/gyazo-upload.sh>
 
 ## Steps
 
-### 0. Locate binaries
+### 0. Locate gyazo-upload
 
 ```bash
-PLUGIN_BIN=$(ls -d ~/.claude/plugins/cache/fishprint/fishprint/*/bin 2>/dev/null | head -1)
-AB="$PLUGIN_BIN/agent-browser.sh"
-GYAZO_UPLOAD="$PLUGIN_BIN/gyazo-upload.sh"
+GYAZO_UPLOAD=$(ls ~/.claude/plugins/cache/fishprint/fishprint/*/bin/gyazo-upload.sh 2>/dev/null | head -1)
 ```
 
 ### 1. Open each candidate URL
@@ -137,13 +128,13 @@ GYAZO_UPLOAD="$PLUGIN_BIN/gyazo-upload.sh"
 Run in parallel (separate Bash calls, all at once):
 
 ```bash
-"$AB" --session section_<N> open <url>
+agent-browser --session section_<N> open <url>
 ```
 
 ### 2. Read page content
 
 ```bash
-"$AB" --session section_<N> snapshot
+agent-browser --session section_<N> snapshot
 ```
 
 Identify which article(s) most authoritatively cover the topic. Skip off-topic or duplicate pages.
@@ -171,7 +162,7 @@ For each CSS selector, first validate, then screenshot and upload:
 
 **Validate:**
 ```bash
-"$AB" --session section_<N> eval "(function(){
+agent-browser --session section_<N> eval "(function(){
   const el = document.querySelector('<selector>');
   if (!el) return JSON.stringify({error:'not found'});
   const r = el.getBoundingClientRect();
@@ -186,7 +177,7 @@ If `{"ok":true}`, proceed. If error, pick a narrower selector and retry. Do NOT 
 
 **Screenshot via html2canvas:**
 ```bash
-RESULT=$("$AB" --session section_<N> eval "new Promise(resolve=>{
+RESULT=$(agent-browser --session section_<N> eval "new Promise(resolve=>{
   const el=document.querySelector('<selector>');
   const s=document.createElement('script');
   s.src='https://html2canvas.hertzen.com/dist/html2canvas.min.js';
@@ -254,7 +245,7 @@ Rules:
 ### 8. Clean up
 
 ```bash
-"$AB" --session section_<N> close
+agent-browser --session section_<N> close
 rm -f /tmp/shot_<N>_*.png
 ```
 
@@ -265,7 +256,7 @@ Reply with a single line: `section <N> written` (or `section <N> skipped: <reaso
 ## Constraints
 
 - Everything in <user's language>.
-- **NEVER use `mcp__claude-in-chrome__*` tools.** Use only `agent-browser` CLI via Bash (`"$AB" ...`).
+- **NEVER use `mcp__claude-in-chrome__*` tools.** Use only `agent-browser` CLI via Bash.
 - Use WebSearch freely for discovery and quick relevance checks.
 - On error for a URL, skip it and continue. If no URL works, report "skipped".
 - **If Time constraint is not "none":** check the article's publish date. If outside the range, skip that article entirely. If all candidates are outside the range, report "section <N> skipped: no content within time constraint".
@@ -278,7 +269,7 @@ Reply with a single line: `section <N> written` (or `section <N> skipped: <reaso
 Write preamble and appendix to temp files, then call the assemble script:
 
 ```bash
-PLUGIN_BIN=$(ls -d ~/.claude/plugins/cache/fishprint/fishprint/*/bin 2>/dev/null | head -1)
+ASSEMBLE=$(ls ~/.claude/plugins/cache/fishprint/fishprint/*/bin/assemble.sh 2>/dev/null | head -1)
 
 # Write preamble to temp file
 cat > /tmp/fishprint_preamble.md << 'PREAMBLE'
@@ -290,7 +281,7 @@ cat > /tmp/fishprint_appendix.md << 'APPENDIX'
 <appendix content>
 APPENDIX
 
-"$PLUGIN_BIN/assemble.sh" <sectionDir> <output> /tmp/fishprint_preamble.md /tmp/fishprint_appendix.md
+"$ASSEMBLE" <sectionDir> <output> /tmp/fishprint_preamble.md /tmp/fishprint_appendix.md
 rm -f /tmp/fishprint_preamble.md /tmp/fishprint_appendix.md
 ```
 
