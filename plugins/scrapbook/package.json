@@ -1,6 +1,6 @@
 {
   "name": "scrapbook",
-  "version": "2.6.0",
+  "version": "2.7.0",
   "private": true,
   "bin": {
     "scrapbook-ocr": "./skills/ocr/scrapbook-ocr.sh"

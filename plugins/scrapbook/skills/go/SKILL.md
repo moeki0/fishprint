@@ -7,7 +7,6 @@ allowed-tools:
   - Write
   - Task
   - mcp__scrapbook__*
-  - Skill(scrapbook:write)
 ---
 
 # Scrapbook — Web Research & Citation Digest
@@ -17,7 +16,7 @@ Arguments: `$ARGUMENTS`
 ## What Scrapbook does
 
 1. Browse curation sites widely and **extract a list of distinct topics** — each topic may cite 1〜3 source URLs
-2. **Spawn one Task (general-purpose subagent) per topic, in parallel.** Each subagent opens its sources, selects thesis sentences, captures translated screenshots ("魚拓"), and writes a section via `/scrapbook:write`
+2. **Spawn one Task (general-purpose subagent) per topic, in parallel.** Each subagent opens its sources, selects thesis sentences, captures translated screenshots ("魚拓"), and writes its own `section_N.md` directly via `Write`
 3. Concatenate all sections into a single Markdown digest via `assemble`
 
 **Scaling principle:** The main agent only holds the topic list. All heavy context (DOMs, quotes, translations) lives inside subagents. One wave of ~8 topics per run is the default target.
@@ -48,7 +47,7 @@ Arguments: `$ARGUMENTS`
 
 ### Phase 0: Pick a sectionDir
 
-Choose a unique temp path for this run, e.g. `/tmp/scrapbook_<YYYYMMDD_HHMMSS>` or `/tmp/scrapbook_<random>`. **Remember it.** Pass it to every `/scrapbook:write` call and to `assemble`. No explicit setup needed — the write skill creates the dir when it saves `section_1.md`.
+Choose a unique temp path for this run, e.g. `/tmp/scrapbook_<YYYYMMDD_HHMMSS>` or `/tmp/scrapbook_<random>`. **Remember it.** Pass it to every subagent and to `assemble`. No explicit setup needed — subagents create the dir when they save `section_1.md`.
 
 ### Phase 1: Browse curation sites & extract topic list
 
@@ -78,7 +77,7 @@ You are writing one section of a scrapbook digest about a specific topic.
 
 Topic: <topic description>
 Candidate source URLs: <url list>
-sectionDir: <sectionDir>
+sectionDir: <sectionDir>          (e.g. /tmp/scrapbook_xxx)
 Section number: <N>
 Target language: <user's language>
 
@@ -93,7 +92,38 @@ Steps:
    Identify the smallest element that wraps exactly that sentence (usually a specific `p`, sometimes `blockquote`/`li`). Use the `p`, not a sub-span — surrounding context helps.
 4. For each chosen element, prepare a natural translation into <user's language> (not machine-translation style).
 5. Call mcp__scrapbook__capture({ id, sections: [{ selector, translated }, ...] }) for each page to get Gyazo URLs of the translated screenshots.
-6. Invoke /scrapbook:write with: article title (in <user's language>), the list of {image_url, translated_alt} pairs, the source URL(s), <user's language>, sectionDir=<sectionDir>, section number=<N>. /scrapbook:write saves section_<N>.md to sectionDir.
+6. Compose the Markdown section yourself and save it directly with the `Write` tool to `<sectionDir>/section_<N>.md`.
+
+   **Section format** (everything in <user's language>):
+
+   ```markdown
+   ## Topic title
+
+   Narrative text explaining context and significance — what happened,
+   why it matters, the key points. Connects the 魚拓 below together.
+
+   ![Translated alt text, same string that was baked into the screenshot](https://i.gyazo.com/xxx.png)
+
+   More narrative that transitions to the next 魚拓.
+
+   ![Another translated alt](https://i.gyazo.com/yyy.png)
+
+   Closing narrative if needed.
+
+   **Sources:**
+   - → [Source title 1](https://example.com/a)
+   - → [Source title 2](https://example.com/b)
+   ```
+
+   (If there is only one source, a single `→ [Source](url)` line is fine instead of the list.)
+
+   Rules for the section:
+   - `##` heading = topic title in <user's language>.
+   - Narrative text drives the flow; 魚拓 images are evidence. NEVER stack two images back-to-back without narrative between them.
+   - Use every image URL returned by `capture` — each represents an intentional quote. The alt text of each `![alt](url)` MUST be the translated string that was injected before the screenshot (for search/accessibility).
+   - You may additionally embed important article figures (graphs, benchmark tables, architecture diagrams) using their original URLs: `![description](https://example.com/figure.png)`. Only include figures that add information text cannot convey.
+   - ALWAYS end the section with link(s) to the original source(s). Mandatory.
+
 7. Call mcp__scrapbook__close on every page you opened.
 8. Report back a single line: "section <N> written" (or "section <N> skipped: <reason>").
 
@@ -104,7 +134,7 @@ Constraints:
 - On error for a URL, skip it and continue with the remaining URLs. If no URL works, report "skipped".
 ```
 
-**Wave control.** Issue Tasks in groups of 8 per message. Wait for each wave to return before dispatching the next. Assign section numbers sequentially across all waves (1〜N). If a subagent reports "skipped", leave that section number as a gap — `assemble` will skip missing files.
+**Wave control.** If the topic list exceeds ~10, issue Tasks in groups of 8 per message. Wait for each wave to return before dispatching the next. Assign section numbers sequentially across all waves (1〜N). If a subagent reports "skipped", leave that section number as a gap — `assemble` will skip missing files.
 
 ### Phase 3: Assemble final digest — MANDATORY, DO NOT SKIP
 

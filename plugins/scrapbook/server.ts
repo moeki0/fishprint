@@ -71,7 +71,7 @@ function summarizeDOM(page: Page): Promise<{ structure: string; truncated: boole
 }
 
 // --- MCP Server ---
-const mcp = new Server({ name: "scrapbook", version: "2.6.0" }, { capabilities: { tools: {} } });
+const mcp = new Server({ name: "scrapbook", version: "2.7.0" }, { capabilities: { tools: {} } });
 
 mcp.setRequestHandler(ListToolsRequestSchema, async () => ({
   tools: [
