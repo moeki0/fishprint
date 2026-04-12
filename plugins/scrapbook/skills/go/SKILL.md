@@ -21,7 +21,7 @@ Arguments: `$ARGUMENTS`
 
 **Scaling principle:** The main agent only holds the topic list. All heavy context (DOMs, quotes, translations) lives inside subagents. One wave of ~8 topics per run is the default target.
 
-**Output format: narrative text with translated-screenshot citations (魚拓), all in the user's language.** Each citation is a Gyazo-hosted screenshot of the original element with its text replaced by the translation — preserving the source's layout/typography while being readable in the user's language.
+**Output format: narrative text with 魚拓 (original-text screenshots) + a translated blockquote below each, all in the user's language.** The 魚拓 preserves the source page exactly as published (evidence). The translation lives under it as a readable blockquote so the reader gets both.
 
 **Language: detect the language the user used in `$ARGUMENTS` (or the conversation). Write everything in that language.**
 
@@ -90,11 +90,11 @@ Steps:
    - Unexpected, counterintuitive, or opinionated lines
    Avoid: generic intros ("In recent years..."), TOC items, section titles.
    Identify the smallest element that wraps exactly that sentence (usually a specific `p`, sometimes `blockquote`/`li`). Use the `p`, not a sub-span — surrounding context helps.
-4. For each chosen element, prepare a natural translation into <user's language> (not machine-translation style).
-5. Call mcp__scrapbook__capture({ id, sections: [{ selector, translated }, ...] }) for each page to get Gyazo URLs of the translated screenshots.
+4. Call mcp__scrapbook__capture({ id, selectors: [selector1, selector2, ...] }) for each page. This screenshots the ORIGINAL (untranslated) element and returns Gyazo URLs — one per selector.
+5. For each captured quote, prepare a natural translation into <user's language> (not machine-translation style). The translation goes into the Markdown under the image, not into the image itself.
 6. Compose the Markdown section yourself and save it directly with the `Write` tool to `<sectionDir>/section_<N>.md`.
 
-   **Section format** (everything in <user's language>):
+   **Section format** (everything in <user's language> except the 魚拓 images themselves, which stay in the source language):
 
    ```markdown
    ## Topic title
@@ -102,11 +102,15 @@ Steps:
    Narrative text explaining context and significance — what happened,
    why it matters, the key points. Connects the 魚拓 below together.
 
-   ![Translated alt text, same string that was baked into the screenshot](https://i.gyazo.com/xxx.png)
+   ![Original-language quote, as shown on the page](https://i.gyazo.com/xxx.png)
+
+   > 自然な訳文。機械翻訳調にならないように。
 
    More narrative that transitions to the next 魚拓.
 
-   ![Another translated alt](https://i.gyazo.com/yyy.png)
+   ![Another original quote](https://i.gyazo.com/yyy.png)
+
+   > もう一つの訳文。
 
    Closing narrative if needed.
 
@@ -119,8 +123,9 @@ Steps:
 
    Rules for the section:
    - `##` heading = topic title in <user's language>.
-   - Narrative text drives the flow; 魚拓 images are evidence. NEVER stack two images back-to-back without narrative between them.
-   - Use every image URL returned by `capture` — each represents an intentional quote. The alt text of each `![alt](url)` MUST be the translated string that was injected before the screenshot (for search/accessibility).
+   - Narrative text drives the flow; 魚拓 + translation pairs are evidence. NEVER stack two pairs back-to-back without narrative between them.
+   - Use every image URL returned by `capture`. Each MUST be followed immediately by a `>` blockquote containing the translation of that quote.
+   - The image `alt` text should briefly describe the original (e.g. the first few words of the original language), NOT the translation — the translation lives in the blockquote below.
    - You may additionally embed important article figures (graphs, benchmark tables, architecture diagrams) using their original URLs: `![description](https://example.com/figure.png)`. Only include figures that add information text cannot convey.
    - ALWAYS end the section with link(s) to the original source(s). Mandatory.
 

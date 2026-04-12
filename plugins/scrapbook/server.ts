@@ -71,7 +71,7 @@ function summarizeDOM(page: Page): Promise<{ structure: string; truncated: boole
 }
 
 // --- MCP Server ---
-const mcp = new Server({ name: "scrapbook", version: "2.7.0" }, { capabilities: { tools: {} } });
+const mcp = new Server({ name: "scrapbook", version: "2.8.0" }, { capabilities: { tools: {} } });
 
 mcp.setRequestHandler(ListToolsRequestSchema, async () => ({
   tools: [
@@ -88,25 +88,18 @@ mcp.setRequestHandler(ListToolsRequestSchema, async () => ({
     },
     {
       name: "capture",
-      description: "Translate selected elements on an open page and screenshot each, uploading to Gyazo. Replaces each element's textContent with the provided translation BEFORE screenshotting, so the image shows the original layout/typography with translated text. Returns an array of { selector, url } — embed url in Markdown as ![](url) in place of blockquote citations.",
+      description: "Screenshot selected elements on an open page and upload each to Gyazo. The original (untranslated) element is captured as-is. Returns an array of { selector, url } — embed url in Markdown as ![](url), and place the translated text as a blockquote below the image.",
       inputSchema: {
         type: "object",
         properties: {
           id: { type: "string", description: "Page ID returned by open" },
-          sections: {
+          selectors: {
             type: "array",
-            description: "Elements to translate and capture",
-            items: {
-              type: "object",
-              properties: {
-                selector: { type: "string", description: "CSS selector of the element to capture" },
-                translated: { type: "string", description: "Translated text to inject into the element's textContent" },
-              },
-              required: ["selector", "translated"],
-            },
+            description: "CSS selectors of the elements to capture",
+            items: { type: "string" },
           },
         },
-        required: ["id", "sections"],
+        required: ["id", "selectors"],
       },
     },
     {
@@ -178,31 +171,20 @@ mcp.setRequestHandler(CallToolRequestSchema, async (req) => {
 
     case "capture": {
       const id = args.id as string;
-      const sections = args.sections as Array<{ selector: string; translated: string }>;
+      const selectors = args.selectors as string[];
       const entry = pages.get(id);
       if (!entry) {
         return { content: [{ type: "text", text: `Page ${id} not found` }] };
       }
       const page = entry.page;
 
-      await page.evaluate((secs) => {
-        for (const sec of secs) {
-          try {
-            const el = document.querySelector(sec.selector);
-            if (el && sec.translated) el.textContent = sec.translated;
-          } catch {}
-        }
-      }, sections);
-
-      await page.waitForTimeout(300);
-
       const shots: { buf: Buffer; title: string; selector: string }[] = [];
-      for (const sec of sections) {
+      for (const selector of selectors) {
         try {
-          const el = await page.$(sec.selector);
+          const el = await page.$(selector);
           if (!el) continue;
           const buf = await el.screenshot();
-          shots.push({ buf: Buffer.from(buf), title: entry.url, selector: sec.selector });
+          shots.push({ buf: Buffer.from(buf), title: entry.url, selector });
         } catch {}
       }
 
