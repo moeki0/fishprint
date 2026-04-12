@@ -5,9 +5,18 @@ user-invocable: true
 allowed-tools:
   - Read
   - Write
-  - Bash
   - Task
   - WebSearch
+  - Bash(~/.claude/plugins/cache/fishprint/*)
+  - Bash(agent-browser *)
+  - Bash(curl *)
+  - Bash(security *)
+  - Bash(secret-tool *)
+  - Bash(base64 *)
+  - Bash(printf *)
+  - Bash(rm *)
+  - Bash(mkdir *)
+  - Bash(ls *)
 ---
 
 # Fishprint — Primary-source web research with 魚拓
