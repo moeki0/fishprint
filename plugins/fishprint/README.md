@@ -36,8 +36,8 @@ Phase 3 — Assemble
 ### Setup
 
 ```bash
-cd ~/.claude/plugins/cache/fishprint/fishprint/*/
-bun install && bunx playwright install chromium
+brew install agent-browser
+agent-browser install
 ```
 
 ### Gyazo (required — 魚拓 are uploaded here)
