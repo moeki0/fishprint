@@ -74,10 +74,12 @@ Collect **as many candidate article URLs as possible** (20+).
 Call the `assemble` MCP tool:
 
 ```
-assemble({ sectionDir: "/tmp/scrapbook_...", output: "./scrapbook_YYYY_MM_DD.md", title: "Scrapbook: {theme} — {date}" })
+assemble({ sectionDir: "/tmp/scrapbook_...", output: "<ABSOLUTE_PATH>/scrapbook_YYYY_MM_DD.md", title: "Scrapbook: {theme} — {date}" })
 ```
 
 This concatenates all section files in `sectionDir` (in numeric order), prepends the title as an `#` heading, saves to the output path, and cleans up `sectionDir`.
+
+**`output` MUST be an absolute path.** The MCP server's working directory is its own install location, not the user's working directory — a relative path like `./scrapbook.md` will land in the plugin cache. Build the absolute path from the user's current working directory (the one shown at the top of your system context, e.g. `/Users/alice/wiki/scrapbook_YYYY_MM_DD.md`).
 
 **Do not end the session without calling assemble.**
 
