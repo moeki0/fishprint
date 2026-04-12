@@ -1,6 +1,6 @@
 {
   "name": "scrapbook",
   "description": "Browse the web, collect verbatim quotes, and write citation-driven digests",
-  "version": "2.2.3",
+  "version": "2.3.0",
   "keywords": ["news", "hackernews", "screenshot", "archive", "digest", "translation", "魚拓"]
 }

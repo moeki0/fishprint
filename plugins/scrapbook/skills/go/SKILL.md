@@ -43,6 +43,10 @@ Arguments: `$ARGUMENTS`
 
 ## Flow
 
+### Phase 0: Reset — MANDATORY, DO NOT SKIP
+
+Call `reset` to remove any leftover `/tmp/scrapbook_section_*.md` files from previous sessions.
+
 ### Phase 1: Browse & collect URLs
 
 Use `open(url)` to browse sites. Read the DOM structure to find interesting posts and articles.
@@ -64,17 +68,17 @@ Collect **as many candidate article URLs as possible** (20+).
 
 **Maximize concurrency.** open calls, write calls — all can run in parallel since each article is independent.
 
-### Phase 3: Assemble final digest
+### Phase 3: Assemble final digest — MANDATORY, DO NOT SKIP
 
-Each `/scrapbook:write` call should save its section to a temporary file (e.g. `/tmp/scrapbook_section_1.md`, `/tmp/scrapbook_section_2.md`, ...).
+Call the `assemble` MCP tool:
 
-Then assemble the final file:
-
-```bash
-echo "# Scrapbook: {theme} — {date}" > output.md
-echo "" >> output.md
-for f in /tmp/scrapbook_section_*.md; do cat "$f" >> output.md; echo -e "\n---\n" >> output.md; done
 ```
+assemble({ output: "./scrapbook_YYYY_MM_DD.md", title: "Scrapbook: {theme} — {date}" })
+```
+
+This concatenates all `/tmp/scrapbook_section_*.md` files (in numeric order), prepends the title as an `#` heading, saves to the output path, and cleans up the temp files.
+
+**Do not end the session without calling assemble.**
 
 ## Rules
 

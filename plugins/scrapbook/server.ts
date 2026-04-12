@@ -3,6 +3,8 @@ import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { ListToolsRequestSchema, CallToolRequestSchema } from "@modelcontextprotocol/sdk/types.js";
 import { chromium, type Browser, type Page } from "playwright";
+import { readFileSync, writeFileSync, readdirSync, mkdirSync, existsSync, unlinkSync } from "fs";
+import { join, dirname } from "path";
 
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
 
@@ -94,6 +96,23 @@ mcp.setRequestHandler(ListToolsRequestSchema, async () => ({
         required: ["id"],
       },
     },
+    {
+      name: "reset",
+      description: "Clear any leftover /tmp/scrapbook_section_*.md files from previous sessions. Call at the start of each scrapbook run.",
+      inputSchema: { type: "object", properties: {} },
+    },
+    {
+      name: "assemble",
+      description: "Concatenate all /tmp/scrapbook_section_*.md files into a single Markdown file with a top-level heading. Removes temp files after assembly.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          output: { type: "string", description: "Output file path (e.g. ./scrapbook_2026_04_12.md)" },
+          title: { type: "string", description: "Top-level heading text (e.g. 'Scrapbook: AI agents — 2026-04-12')" },
+        },
+        required: ["output", "title"],
+      },
+    },
   ],
 }));
 
@@ -147,6 +166,49 @@ mcp.setRequestHandler(CallToolRequestSchema, async (req) => {
       pages.delete(id);
       return {
         content: [{ type: "text", text: `Closed page ${id}` }],
+      };
+    }
+
+    case "reset": {
+      const tmpDir = "/tmp";
+      const files = readdirSync(tmpDir).filter(f => /^scrapbook_section_\d+\.md$/.test(f));
+      for (const f of files) {
+        try { unlinkSync(join(tmpDir, f)); } catch {}
+      }
+      return { content: [{ type: "text", text: `Removed ${files.length} leftover section files` }] };
+    }
+
+    case "assemble": {
+      const output = args.output as string;
+      const title = args.title as string;
+
+      const tmpDir = "/tmp";
+      const files = readdirSync(tmpDir)
+        .filter(f => /^scrapbook_section_\d+\.md$/.test(f))
+        .sort((a, b) => {
+          const na = parseInt(a.match(/\d+/)![0]);
+          const nb = parseInt(b.match(/\d+/)![0]);
+          return na - nb;
+        });
+
+      if (files.length === 0) {
+        return { content: [{ type: "text", text: "No section files found in /tmp/scrapbook_section_*.md" }] };
+      }
+
+      const sections = files.map(f => readFileSync(join(tmpDir, f), "utf-8").trim());
+      const combined = `# ${title}\n\n` + sections.join("\n\n---\n\n") + "\n";
+
+      const outDir = dirname(output);
+      if (outDir && !existsSync(outDir)) mkdirSync(outDir, { recursive: true });
+      writeFileSync(output, combined);
+
+      // Clean up temp files
+      for (const f of files) {
+        try { unlinkSync(join(tmpDir, f)); } catch {}
+      }
+
+      return {
+        content: [{ type: "text", text: `Assembled ${files.length} sections into ${output}` }],
       };
     }
 
