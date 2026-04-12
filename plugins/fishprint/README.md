@@ -36,6 +36,7 @@ Phase 3 — Assemble
 ### Setup
 
 ```bash
+npm install -g fishprint
 brew install agent-browser
 agent-browser install
 ```

@@ -113,15 +113,7 @@ sectionDir: <sectionDir>          (e.g. /tmp/fishprint_xxx)
 Section number: <N>
 Target language: <user's language>
 Time constraint: <absolute date range e.g. "2026-04-12 only" or "2026-04-06〜2026-04-12"; or "none">
-gyazo-upload script: <absolute path, found at ~/.claude/plugins/cache/fishprint/fishprint/*/bin/gyazo-upload.sh>
-
 ## Steps
-
-### 0. Locate gyazo-upload
-
-```bash
-GYAZO_UPLOAD=$(ls ~/.claude/plugins/cache/fishprint/fishprint/*/bin/gyazo-upload.sh 2>/dev/null | head -1)
-```
 
 ### 1. Open each candidate URL
 
@@ -190,7 +182,7 @@ printf '%s' "$RESULT" | tr -d '"' | sed 's/data:image\/png;base64,//' | base64 -
 
 **Upload to Gyazo:**
 ```bash
-GYAZO_URL=$(<gyazo-upload script path> /tmp/shot_<N>_<i>.png)
+GYAZO_URL=$(fishprint gyazo-upload /tmp/shot_<N>_<i>.png)
 ```
 
 Record `GYAZO_URL` for use in the section Markdown.
@@ -269,8 +261,6 @@ Reply with a single line: `section <N> written` (or `section <N> skipped: <reaso
 Write preamble and appendix to temp files, then call the assemble script:
 
 ```bash
-ASSEMBLE=$(ls ~/.claude/plugins/cache/fishprint/fishprint/*/bin/assemble.sh 2>/dev/null | head -1)
-
 # Write preamble to temp file
 cat > /tmp/fishprint_preamble.md << 'PREAMBLE'
 <preamble content>
@@ -281,7 +271,7 @@ cat > /tmp/fishprint_appendix.md << 'APPENDIX'
 <appendix content>
 APPENDIX
 
-"$ASSEMBLE" <sectionDir> <output> /tmp/fishprint_preamble.md /tmp/fishprint_appendix.md
+fishprint assemble <sectionDir> <output> /tmp/fishprint_preamble.md /tmp/fishprint_appendix.md
 rm -f /tmp/fishprint_preamble.md /tmp/fishprint_appendix.md
 ```
 

@@ -1,0 +1,101 @@
+#!/bin/bash
+set -euo pipefail
+
+COMMAND="${1:-}"
+
+usage() {
+  echo "Usage: fishprint <command> [args]"
+  echo ""
+  echo "Commands:"
+  echo "  gyazo-upload <image_path>                              Upload image to Gyazo, print URL"
+  echo "  assemble <sectionDir> <output> [preamble] [appendix]  Concatenate section files into digest"
+  exit 1
+}
+
+cmd_gyazo_upload() {
+  local image="$1"
+  if [ -z "$image" ]; then
+    echo "Usage: fishprint gyazo-upload <image_path>" >&2
+    exit 1
+  fi
+
+  if [ "$(uname)" = "Darwin" ]; then
+    TOKEN=$(security find-generic-password -a gyazo -s fishprint -w 2>/dev/null || true)
+  else
+    TOKEN=$(secret-tool lookup service fishprint key gyazo 2>/dev/null || true)
+  fi
+
+  if [ -z "$TOKEN" ]; then
+    echo "Error: Gyazo token not found. Set it with:" >&2
+    echo "  macOS: security add-generic-password -a gyazo -s fishprint -w YOUR_TOKEN -U" >&2
+    echo "  Linux: secret-tool store --label=fishprint service fishprint key gyazo" >&2
+    exit 1
+  fi
+
+  curl -s -X POST https://upload.gyazo.com/api/upload \
+    -F "access_token=$TOKEN" \
+    -F "imagedata=@$image" \
+    | grep -o '"url":"[^"]*"' | cut -d'"' -f4
+}
+
+cmd_assemble() {
+  local section_dir="$1"
+  local output="$2"
+  local preamble_file="${3:-}"
+  local appendix_file="${4:-}"
+
+  if [ ! -d "$section_dir" ]; then
+    echo "Error: sectionDir '$section_dir' not found" >&2
+    exit 1
+  fi
+
+  local sections
+  sections=$(ls "$section_dir"/section_*.md 2>/dev/null | sort -t_ -k2 -n || true)
+  if [ -z "$sections" ]; then
+    echo "Error: no section_*.md files found in '$section_dir'" >&2
+    exit 1
+  fi
+
+  mkdir -p "$(dirname "$output")"
+
+  {
+    if [ -n "$preamble_file" ] && [ -f "$preamble_file" ]; then
+      cat "$preamble_file"
+      echo
+      echo
+    fi
+
+    local first=1
+    while IFS= read -r f; do
+      if [ "$first" = "1" ]; then
+        first=0
+      else
+        echo
+        echo "---"
+        echo
+      fi
+      cat "$f"
+    done <<< "$sections"
+
+    if [ -n "$appendix_file" ] && [ -f "$appendix_file" ]; then
+      echo
+      echo "---"
+      echo
+      cat "$appendix_file"
+    fi
+  } > "$output"
+
+  # Clean up
+  while IFS= read -r f; do rm -f "$f"; done <<< "$sections"
+  rmdir "$section_dir" 2>/dev/null || true
+
+  local count
+  count=$(echo "$sections" | wc -l | tr -d ' ')
+  echo "Assembled $count sections → $output"
+}
+
+case "$COMMAND" in
+  gyazo-upload) shift; cmd_gyazo_upload "$@" ;;
+  assemble)     shift; cmd_assemble "$@" ;;
+  *)            usage ;;
+esac

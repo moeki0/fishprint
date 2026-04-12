@@ -1,0 +1,13 @@
+{
+  "name": "fishprint",
+  "version": "1.0.0",
+  "description": "CLI for the Fishprint Claude Code plugin — Gyazo upload and digest assembly",
+  "bin": {
+    "fishprint": "./fishprint"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/moeki0/claude-code-fishprint.git"
+  },
+  "license": "MIT"
+}
