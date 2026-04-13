@@ -71,7 +71,7 @@ function summarizeDOM(page: Page): Promise<{ structure: string; truncated: boole
 }
 
 // --- MCP Server ---
-const mcp = new Server({ name: "fishprint", version: "2.11.0" }, { capabilities: { tools: {} } });
+const mcp = new Server({ name: "fishprint", version: "2.25.0" }, { capabilities: { tools: {} } });
 
 mcp.setRequestHandler(ListToolsRequestSchema, async () => ({
   tools: [

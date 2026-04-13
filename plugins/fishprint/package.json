@@ -1,6 +1,6 @@
 {
   "name": "fishprint",
-  "version": "2.11.0",
+  "version": "2.25.0",
   "private": true,
   "bin": {
     "fishprint-ocr": "./skills/ocr/fishprint-ocr.sh"

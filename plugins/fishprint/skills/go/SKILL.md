@@ -47,6 +47,20 @@ Arguments: `$ARGUMENTS`
 
 ## Flow
 
+### Phase -1: Read existing digests to avoid duplicates
+
+Before doing anything else, **scan the current working directory for existing Fishprint output files** using the `Read` tool on each `.md` file found with `Glob("**/*.md")`. Skim their headings (`##`) and source URLs to build a **seen-topics list** — a concise record of what has already been covered.
+
+**Seen-topics list format** (keep in memory, never written to disk):
+```
+- "Anthropic releases Claude Code 2.5" (sources: anthropic.com/..., HN #...)
+- "Berkeley RDI benchmark paper" (sources: rdi.berkeley.edu/...)
+```
+
+**This list is a hard exclusion filter for Phase 1.** In Phase 1, if a candidate topic matches something already in the seen-topics list — same product/paper/event, even if reported from a different angle — **discard it**. A topic "matches" if it concerns the same named entity, release, incident, or finding. Prefer fresh topics the reader has not seen before.
+
+If no `.md` files exist in the current directory, skip this phase and proceed.
+
 ### Phase 0: Pick a sectionDir
 
 Choose a unique temp path for this run, e.g. `/tmp/fishprint_<YYYYMMDD_HHMMSS>` or `/tmp/fishprint_<random>`. **Remember it.** Pass it to every subagent and to `assemble`. No explicit setup needed — subagents create the dir when they save `section_1.md`.
