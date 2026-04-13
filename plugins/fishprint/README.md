@@ -33,21 +33,27 @@ Phase 3 — Assemble
 /plugin install fishprint@fishprint
 ```
 
-### Setup
+### Gyazo token (required — 魚拓 are uploaded here)
+
+Store your Gyazo API token in the OS keychain:
 
 ```bash
-npm install -g @yuiseki/gyazocli
-brew install agent-browser
-agent-browser install
-```
+# macOS
+security add-generic-password -a gyazo -s fishprint -w YOUR_GYAZO_TOKEN -U
 
-### Gyazo (required — 魚拓 are uploaded here)
-
-```bash
-gyazo config set token YOUR_GYAZO_TOKEN
+# Linux
+secret-tool store --label=fishprint service fishprint key gyazo
 ```
 
 Get a token at [gyazo.com/oauth/applications](https://gyazo.com/oauth/applications).
+
+### Playwright
+
+Playwright is installed as a dependency. On first run you may need to install browsers:
+
+```bash
+bunx playwright install chromium
+```
 
 ## Usage
 
@@ -100,7 +106,7 @@ More narrative connecting this to the next 魚拓.
 
 ## How it works internally
 
-No MCP server. Subagents use **agent-browser** CLI for browser automation and element-level screenshots. Gyazo uploads go through [`@yuiseki/gyazocli`](https://www.npmjs.com/package/@yuiseki/gyazocli) (`gyazo upload`).
+An MCP server (`server.ts`) wraps Playwright for headless browsing and exposes four tools: `open` (visit a page, return DOM structure), `capture` (screenshot CSS-selected elements and upload to Gyazo via API), `close` (free page), and `assemble` (concatenate section files into the final digest). Gyazo uploads use the REST API directly — no external CLI needed.
 
 ## License
 
