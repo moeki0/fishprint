@@ -18,9 +18,9 @@ See [plugins/fishprint/README.md](plugins/fishprint/README.md) for prerequisites
 ## Quick start
 
 ```
-/fishprint:go AI agents
-/fishprint:go Rust async
-/fishprint:go              # no theme — whatever is interesting right now
+/fishprint AI agents
+/fishprint Rust async
+/fishprint              # no theme — whatever is interesting right now
 ```
 
 ## License
