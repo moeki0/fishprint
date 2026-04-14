@@ -1,4 +1,4 @@
-# claude-code-fishprint
+# Fishprint
 
 > Primary-source 魚拓 archive for the web — a [Claude Code](https://claude.ai/code) plugin.
 
