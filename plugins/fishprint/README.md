@@ -64,9 +64,9 @@ bunx playwright install chromium
 ## Usage
 
 ```
-/fishprint:go AI agents
-/fishprint:go Rust async
-/fishprint:go              # no theme — whatever is interesting on major curation sites right now
+/fishprint AI agents
+/fishprint Rust async
+/fishprint              # no theme — whatever is interesting on major curation sites right now
 ```
 
 Output: `{theme}_YYYY-MM-DD.md` (or `fishprint_YYYY-MM-DD.md` if no theme given) in your current working directory.

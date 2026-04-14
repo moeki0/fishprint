@@ -1,5 +1,5 @@
 ---
-name: go
+name: fishprint
 description: Browse the web, 魚拓 key sentences, and write a citation-driven topic digest. Use when asked for "news", "what's happening", "fishprint", or to research a topic.
 user-invocable: true
 allowed-tools:
