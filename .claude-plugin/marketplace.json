@@ -10,7 +10,7 @@
       "name": "fishprint",
       "displayName": "Fishprint",
       "description": "Primary-source 魚拓 archive for the web — original-text screenshots + translations under each, with citation-driven topic digests.",
-      "version": "2.16.0",
+      "version": "2.27.0",
       "source": "./plugins/fishprint"
     }
   ]
