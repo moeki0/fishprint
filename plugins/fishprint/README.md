@@ -29,7 +29,7 @@ Phase 3 — Assemble
 ## Install
 
 ```
-/plugin marketplace add moeki0/claude-code-fishprint
+/plugin marketplace add moeki0/fishprint
 /plugin install fishprint@fishprint
 ```
 

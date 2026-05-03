@@ -9,7 +9,7 @@ Each 魚拓 shows the original page **exactly as published** — original langua
 ## Install
 
 ```
-/plugin marketplace add moeki0/claude-code-fishprint
+/plugin marketplace add moeki0/fishprint
 /plugin install fishprint@fishprint
 ```
 
