@@ -1,6 +1,6 @@
 {
   "name": "fishprint",
   "description": "Primary-source 魚拓 archive for the web — original-text screenshots + translations under each, with citation-driven topic digests.",
-  "version": "2.29.0",
+  "version": "2.30.0",
   "keywords": ["news", "hackernews", "screenshot", "archive", "digest", "translation", "魚拓", "fishprint"]
 }

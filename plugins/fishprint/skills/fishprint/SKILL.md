@@ -6,9 +6,9 @@ allowed-tools:
   - Read
   - Write
   - Task
+  - Bash
   - WebSearch
   - WebFetch
-  - mcp__fishprint__*
 ---
 
 # Fishprint — Primary-source web research with 魚拓
@@ -19,7 +19,7 @@ Arguments: `$ARGUMENTS`
 
 1. Browse curation sites widely and **extract a list of distinct topics** — each topic may cite 1〜3 source URLs
 2. **Spawn one Task (general-purpose subagent) per topic, in parallel.** Each subagent opens its sources, selects thesis sentences, captures translated screenshots ("魚拓"), and writes its own `section_N.md` directly via `Write`
-3. Concatenate all sections into a single Markdown digest via `assemble`
+3. Concatenate all sections into a single Markdown digest via the local Fishprint daemon `POST /assemble`
 
 **Scaling principle:** The main agent only holds the topic list. All heavy context (DOMs, quotes, translations) lives inside subagents. One wave of ~8 topics per run is the default target.
 
@@ -58,7 +58,7 @@ Tips:
 
 **For global/international topics, use English-language sources only.** Only use non-English sources when the topic is specifically regional (e.g. Japanese domestic policy, local events).
 
-**Finding more sources:** Use DuckDuckGo via `open("https://duckduckgo.com/?q=QUERY")`. Also try Wikipedia as a starting point and follow its references.
+**Finding more sources:** Use DuckDuckGo via daemon `POST /open` on `https://duckduckgo.com/?q=QUERY`. Also try Wikipedia as a starting point and follow its references.
 
 ## Flow
 
@@ -100,6 +100,17 @@ If `EXA_API_KEY` is unset, the call errors, or results are sparse / off-topic, *
 
 **If a time constraint was resolved in Phase 0.5:** only include candidates whose publish date falls within that range. Discard anything outside it, even if it seems interesting.
 
+**Fishprint daemon API.** Use `curl` via Bash against the already-running local daemon at `http://127.0.0.1:3847`:
+
+```bash
+curl -s http://127.0.0.1:3847/health
+curl -s -X POST http://127.0.0.1:3847/open -H 'content-type: application/json' -d '{"url":"https://example.com"}'
+curl -s -X POST http://127.0.0.1:3847/capture -H 'content-type: application/json' -d '{"id":"1","selectors":["article p:nth-of-type(4)"]}'
+curl -s -X POST http://127.0.0.1:3847/close -H 'content-type: application/json' -d '{"id":"1"}'
+```
+
+If `/health` fails, tell the user to start it with `cd ~/Development/fishprint/plugins/fishprint && bun run daemon:install` (or foreground: `bun run daemon`).
+
 **Keep a running log of what you actually surveyed** — Exa queries used, or curation pages visited (name + URL). You will include this in the digest preamble so the reader can see *what was surveyed* — anti-FOMO by showing the work.
 
 Extract **candidate topics** — short descriptions of discrete news items / discussions / releases, each paired with 1〜3 source URLs. Collect more candidates than you will keep (e.g. ~15〜20). Deduplicate aggressively: two HN submissions about the same launch = one candidate topic.
@@ -122,7 +133,7 @@ Example candidate entries:
 
 **Quantity rule: at least 8 selected.** If your first curation page only yields 3〜4 candidates, keep browsing additional sources until you have enough candidates to pick 8 strong ones from. But do not pad — if you genuinely exhausted sources and only 5 are strong, it's fine to ship 5. Fewer-deeper beats more-shallower.
 
-`close(id)` curation pages before Phase 2 to free browser resources.
+Call daemon `POST /close` for curation pages before Phase 2 to free browser resources.
 
 ### Phase 2: Spawn one subagent per topic, in parallel
 
@@ -141,7 +152,7 @@ Target language: <user's language>
 Time constraint: <absolute date range if specified, e.g. "2026-04-12 only" or "2026-04-06〜2026-04-12"; or "none">
 
 Steps:
-1. Call mcp__fishprint__open on each candidate URL (in parallel) to read its content.
+1. Call the Fishprint daemon `POST /open` on each candidate URL (parallel Bash/curl calls are fine) to read its content.
 2. Read the full content of each. Identify which article(s) most authoritatively cover the topic — you may use 1 or several. Skip any that turn out to be off-topic or duplicates.
 3. From each chosen article, pick 1〜3 *sentences* that carry the thesis — claims a reader would quote in a discussion. Skip headings, navigation, boilerplate, author bios, date stamps. Prefer:
    - The one-sentence claim that best summarizes the piece's argument
@@ -156,7 +167,7 @@ Steps:
    - FORBIDDEN class patterns: anything that names a container — `entry-content`, `post-content`, `article-body`, `et_pb_*`, `prose`, `markdown-body`, `content`, `main`, etc.
    - If the article is on a platform (Medium, Substack, WordPress, Ghost, Notion), use `nth-of-type` or attribute selectors on `p` — e.g. `article p:nth-of-type(4)`, not the wrapping class.
    - When unsure between a narrow and a wide selector, pick the narrow one. capture rejects elements >600px tall or >1200 chars; better to get a clean rejection and retry than to ship a wall-of-text 魚拓.
-4. Call mcp__fishprint__capture({ id, selectors: [selector1, selector2, ...] }) for each page. The server screenshots the ORIGINAL (untranslated) element and uploads to Gyazo. **Response shape**: `{ captured: [{selector, url, permalinkUrl}], rejected: [{selector, reason}] }`. `url` is the direct image URL (i.gyazo.com/...png) for embedding; `permalinkUrl` is the Gyazo page URL (gyazo.com/...) which must be written as a plain-text URL on its own line directly below the image so that pasting into Cosense embeds the Gyazo page. If any selector is rejected (too tall, too much text, or not found), pick a narrower alternative and call capture again for just those selectors. Do not fall back to a wider selector — go narrower.
+4. Call the Fishprint daemon `POST /capture` with `{"id":"<page id>","selectors":[...]}` for each page. The daemon screenshots the ORIGINAL (untranslated) element and uploads to Gyazo. **Response shape**: `{ captured: [{selector, url, permalinkUrl}], rejected: [{selector, reason}] }`. `url` is the direct image URL (i.gyazo.com/...png) for embedding; `permalinkUrl` is the Gyazo page URL (gyazo.com/...) which must be written as a plain-text URL on its own line directly below the image so that pasting into Cosense embeds the Gyazo page. If any selector is rejected (too tall, too much text, or not found), pick a narrower alternative and call capture again for just those selectors. Do not fall back to a wider selector — go narrower.
 5. For each captured quote, prepare a natural translation into <user's language> (not machine-translation style). The translation goes into the Markdown under the image, not into the image itself.
 6. Compose the Markdown section yourself and save it directly with the `Write` tool to `<sectionDir>/section_<N>.md`.
 
@@ -197,13 +208,13 @@ Steps:
    - **REQUIRED — visually central images:** If the article has a hero image that *is* the subject of the story (a cat photo for cat news, a product shot, a screenshot of a new UI, a photo of the person interviewed), you MUST embed it using its original URL: `![description](https://example.com/image.jpg)`. Do not omit the defining visual of a visual story. Also embed graphs, benchmark tables, and architecture diagrams when they convey information text alone cannot.
    - ALWAYS end the section with link(s) to the original source(s). Mandatory.
 
-7. Call mcp__fishprint__close on every page you opened.
+7. Call the Fishprint daemon `POST /close` on every page you opened.
 8. Report back a single line: "section <N> written" (or "section <N> skipped: <reason>").
 
 Constraints:
 - Everything in <user's language>.
 - Do NOT call assemble; the coordinator does that.
-- Any URL you will *quote* (i.e. pass to capture) MUST be opened via mcp__fishprint__open — capture only works on open pages. You may additionally use WebSearch / WebFetch for discovery, cross-referencing, or quick context checks where no screenshot is needed.
+- Any URL you will *quote* (i.e. pass to capture) MUST be opened via daemon `POST /open` — capture only works on open pages. You may additionally use WebSearch / WebFetch for discovery, cross-referencing, or quick context checks where no screenshot is needed.
 - On error for a URL, skip it and continue with the remaining URLs. If no URL works, report "skipped".
 - **If Time constraint is not "none":** check the publish date of each article before using it. If the date is outside the specified range, skip the article entirely (do not quote from it, do not include it in sources). If all candidate URLs fall outside the range, report "section <N> skipped: no content within time constraint".
 ```
@@ -212,15 +223,12 @@ Constraints:
 
 ### Phase 3: Assemble final digest — MANDATORY, DO NOT SKIP
 
-Call the `assemble` MCP tool with `preamble` and `appendix`:
+Call the Fishprint daemon `POST /assemble` with `preamble` and `appendix`:
 
-```
-assemble({
-  sectionDir: "/tmp/fishprint_...",
-  output: "<ABSOLUTE_PATH>/<filename>",
-  preamble: "<see below>",
-  appendix: "<see below>"
-})
+```bash
+curl -s -X POST http://127.0.0.1:3847/assemble \
+  -H 'content-type: application/json' \
+  -d '{"sectionDir":"/tmp/fishprint_...","output":"<ABSOLUTE_PATH>/<filename>","preamble":"<see below>","appendix":"<see below>"}'
 ```
 
 **Filename rules** — derive from the topic and date, in the user's language:
@@ -254,7 +262,7 @@ assemble({
 
 This concatenates all section files in `sectionDir` (in numeric order), prepends the preamble, appends the appendix, saves to the output path, and cleans up `sectionDir`.
 
-**`output` MUST be an absolute path.** The MCP server's working directory is its own install location, not the user's working directory — a relative path like `./fishprint.md` will land in the plugin cache. Build the absolute path from the user's current working directory (the one shown at the top of your system context, e.g. `/Users/alice/wiki/fishprint_YYYY_MM_DD.md`).
+**`output` MUST be an absolute path.** Build the absolute path from the user's current working directory (the one shown at the top of your system context, e.g. `/Users/alice/wiki/fishprint_YYYY_MM_DD.md`).
 
 **Do not end the session without calling assemble.**
 
@@ -262,8 +270,8 @@ This concatenates all section files in `sectionDir` (in numeric order), prepends
 
 - **For global/international topics, use English-language sources only**
 - **Citations must be translated to the user's language** — translate quotes naturally, not machine-translation style
-- **Prefer `open` for anything you will quote from** — capture requires a page opened via `open` to produce 魚拓. Use `WebSearch` / `WebFetch` freely for discovery, quick relevance checks, or to enrich context where a screenshot is not needed.
-- **NEVER invoke Python, Node, or any programming language via Bash.** Bash is for simple commands (ls, mkdir) only.
+- **Prefer daemon `POST /open` for anything you will quote from** — capture requires a page opened via `open` to produce 魚拓. Use `WebSearch` / `WebFetch` freely for discovery, quick relevance checks, or to enrich context where no screenshot is needed.
+- **Use Bash only for `curl` to the Fishprint daemon and simple commands (ls, mkdir). Do not invoke Python, Node, or other programming languages via Bash.**
 - **Visually central images are mandatory.** If a story's subject is visual (an animal, a product, a UI, a person), the key image MUST appear in the section. Do not describe an image without showing it.
 - **Time constraints are hard filters.** If `$ARGUMENTS` includes any temporal reference, convert to an absolute date range in Phase 0.5 and enforce it in every phase. Never include content outside the window.
 - No duplicates

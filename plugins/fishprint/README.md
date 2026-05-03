@@ -61,6 +61,31 @@ Playwright is installed as a dependency. On first run you may need to install br
 bunx playwright install chromium
 ```
 
+## Daemon
+
+Fishprint runs as a local daemon (not MCP) on `127.0.0.1:3847`.
+
+```bash
+# foreground
+bun run daemon
+
+# macOS LaunchAgent (auto-start + keepalive)
+bun run daemon:install
+
+# stop/remove LaunchAgent
+bun run daemon:uninstall
+
+# check
+curl http://127.0.0.1:3847/health
+```
+
+API endpoints:
+
+- `POST /open` `{ "url": "https://example.com" }`
+- `POST /capture` `{ "id": "1", "selectors": ["article p:nth-of-type(4)"] }`
+- `POST /close` `{ "id": "1" }`
+- `POST /assemble` `{ "sectionDir": "/tmp/fishprint_x", "output": "/abs/out.md", "preamble": "...", "appendix": "..." }`
+
 ## Usage
 
 ```
@@ -112,7 +137,7 @@ More narrative connecting this to the next 魚拓.
 
 ## How it works internally
 
-An MCP server (`server.ts`) wraps Playwright for headless browsing and exposes four tools: `open` (visit a page, return DOM structure), `capture` (screenshot CSS-selected elements and upload to Gyazo via API), `close` (free page), and `assemble` (concatenate section files into the final digest). Gyazo uploads use the REST API directly — no external CLI needed.
+A local HTTP daemon (`daemon.ts`) wraps Playwright for headless browsing and exposes four actions: `open` (visit a page, return DOM structure), `capture` (screenshot CSS-selected elements and upload to Gyazo via API), `close` (free page), and `assemble` (concatenate section files into the final digest). Gyazo uploads use the REST API directly — no external CLI needed.
 
 ## License
 
